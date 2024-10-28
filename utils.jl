@@ -16,19 +16,13 @@ function E(x)
 end
 
 
-function B_hat(b)
-    # 3x3 Matrix that gives the cross product with B
-    return [0 -b[3] b[2]; b[3] 0 -b[1]; -b[2] b[1] 0]
+function hat(X)
+    # 3x3 Matrix that gives the cross product with matrix X
+    return [0 -X[3] X[2]; X[3] 0 -X[1]; -X[2] X[1] 0]
 end
 
 function tanc(x)
     return x != 0 ? tanh(x / 2) / (x / 2) : 1.0
-end
-
-
-function Psi(h, B)
-    b = norm(B)
-    return I(3) + (1 - tanc(h*b/2))/(b^2) * B ^2
 end
 
 function x_center(x, v, B)
@@ -45,14 +39,28 @@ function theta(h, B)
     return 1 / sinc(h*norm(B) / 2)^2
 end
 
-function Phi_1(h, X)
-    x = norm(X)
-    return I + (1-tanc(h*x/2))/x^2 * X^2
+function Psi(h, B)
+    # Psi operator from the Appendix
+    b = norm(B)
+    return I + (1 - tanc(h*b/2))/b^2 * hat(B)^2
 end
 
-function Gamma(h, X)
-    x = norm(X)
-    return I - (1 - 1/sinc(h*x))/(h*x^2)*X^2
+function Phi_1(h, B)
+    # Phi_1 operator from the Appendix
+    b = norm(B)
+    return I + (1-1/sinc(h*b))/b^2 * hat(B)^2
+end
+
+function Phi_2(h, B)
+    # Phi_1 operator from the Appendix
+    b = norm(B)
+    return I + (1-1/sinc(h*b/2)^2)/b^2 * hat(B)^2
+end
+
+function Gamma(h, B)
+    # Gamma operator from the Appendix
+    b = norm(B)
+    return (1 - 1/sinc(h*b))/(h*b^2)*hat(B)
 end
 
 function system!(du, u, p, t)
