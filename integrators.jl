@@ -111,7 +111,7 @@ function runge_kutta(x_0, v_0, t::Tuple, nt::Int, epsilon)
 
     # Solving the system using a Runge-Kutta method
     prob = ODEProblem(system!, u0, (t0, tf), [epsilon])
-    sol = solve(prob, Vern7())
+    sol = solve(prob, Tsit5())
 
     # Recovering the states corresponding to the times
     u_t = sol(time).u
@@ -147,12 +147,14 @@ function boris_expA(x_0, v_0, t::Tuple, nt::Int, epsilon)
         x_t[:, i] = x
         v_t[:, i] = v
 
-        b_hat = B_hat(B(x, epsilon))
-        v_plus = v + h / 2 * Psi(h,  b_hat) * E(x)
+        B_n = B(x, epsilon)
 
-        v_minus = exp(-h*b_hat) * v_plus
+        v_plus = v + h / 2 * Psi(h,  B_n) * E(x)
 
-        v = v_minus + h / 2 * Psi(h,  b_hat) * E(x)
+        # for theta = 1, x_bar = x
+        v_minus = exp(-h*hat(B_n)) * v_plus
+
+        v = v_minus + h / 2 * Psi(h,  B_n) * E(x)
 
         # Full step of the position
         x = x + h * v
@@ -182,11 +184,11 @@ function boris_impA(x_0, v_0, t::Tuple, nt::Int, epsilon)
         x_t[:, i] = x # x^{n}
         v_t[:, i] = v # v^{n-1/2}
 
+        E_n = E(x)
         B_n = B(x, epsilon)
-        B_hat_n = B_hat(B_n)
 
         # v^{n-1/2}_{+}
-        v_plus = v + h / 2 * Psi(h,  B_hat_n) * E(x)
+        v_plus = v + h / 2 * Psi(h,  B_n) * E_n
 
         theta_n = theta(h, B_n)
         
@@ -195,14 +197,14 @@ function boris_impA(x_0, v_0, t::Tuple, nt::Int, epsilon)
         tol = 1
         v_minus = 0
         while tol > 1e-8
-            b_bar_n = B(x_bar_n, epsilon)
-            # v^{n-1/2}_{-} = exp(-h*B_hat_bar_n)) * v^{n-1/2}_{+}
-            v_minus = exp(-h*B_hat(b_bar_n)) * v_plus
+            B_bar_n = B(x_bar_n, epsilon)
+            # v^{n-1/2}_{-} = exp(-h*hat_bar_n)) * v^{n-1/2}_{+}
+            v_minus = exp(-h*hat(B_bar_n)) * v_plus
 
-            # n^n
-            vn = Phi_1(h, B_hat(b_bar_n)) * 1/2 * (v_minus + v_plus) - h * Gamma(h, B_hat_n) * E(x)
+            # v^n
+            v_n = Phi_1(h, B_bar_n)  * (v_minus + v_plus) / 2 - h * Gamma(h, B_n) * E_n
 
-            x_c = x_center(x, vn, B_n)
+            x_c = x_center(x, v_n, B_n)
             x_bar_n_ = x_bar(theta_n, x, x_c)
 
             tol = norm(x_bar_n - x_bar_n_) / norm(x_bar_n_)
@@ -210,11 +212,74 @@ function boris_impA(x_0, v_0, t::Tuple, nt::Int, epsilon)
         end
 
         # v^{n+1/2}
-        v = v_minus + h / 2 * Psi(h,  B_hat_n) * E(x)
+        v = v_minus + h / 2 * Psi(h,  B_n) * E_n
 
         # Full step of the position x^{n+1}
         x = x + h * v
 
     end
+    return x_t, v_t
+end
+
+
+function boris_twoPA(x_0, v_0, t::Tuple, nt::Int, epsilon)
+    # standard Boris integrator
+
+    # Parameters
+    (t0, tf) = t
+    h = (tf - t0) / (nt - 1)
+
+    # Arrays to store the state
+    x_t = Array{Float64}(undef, 3, nt)
+    v_t = Array{Float64}(undef, 3, nt)
+
+    v = v_0
+    x = x_0
+
+    # Initial half-step for velocity
+    v = v - (cross(v, B(x, epsilon)) + E(x))*h/2
+    for i in 1:nt
+        # Store the position and velocity
+        x_t[:, i] = x # x^{n}
+        v_t[:, i] = v # v^{n-1/2}
+
+        B_n = B(x, epsilon)
+        E_n = E(x)
+
+        # v^{n-1/2}_{+}
+        v_plus = v + h / 2 * Psi(h,  B_n) * E_n
+
+        # Approximate v^{n-1/2}_{-}
+        v_minus = exp(-h*hat(B_n)) * v_plus
+        tol = 1
+        while tol > 1e-8
+            # Compute v_n by (2.7), with B_n instead of B_bar_n
+            v_n = Phi_1(h, B_n) * 1/2 * (v_minus + v_plus) - h * Gamma(h, B_n) * E_n
+            x_c = x_center(x, v_n, B_n)
+            B_c = B(x_c, epsilon)
+
+            # Express components of (7.1) in matrix form
+            m_phi2 = Phi_2(h, B_c)
+            m_phi1 = h/2 * hat(B_n) * Phi_1(h, B_n)
+
+            # Build the equation 
+            M_LHS = m_phi2 + m_phi1
+            v_RHS = (m_phi2 - m_phi1) * v_plus
+
+            # solve for v_minus
+            v_minus_ = inv(M_LHS) * v_RHS
+            tol = norm(v_minus - v_minus_) / norm(v_minus_)
+
+            v_minus = v_minus_
+        end
+
+        # Update the velocity
+        v = v_minus + h / 2 * Psi(h,  B_n) * E_n
+
+        # Full step of the position x^{n+1}
+        x = x + h * v
+
+    end
+
     return x_t, v_t
 end
