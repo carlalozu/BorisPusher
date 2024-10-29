@@ -22,7 +22,15 @@ function hat(X)
 end
 
 function tanc(x)
-    return x != 0 ? tanh(x / 2) / (x / 2) : 1.0
+    return x != 0 ? tan(x) / x : 1.0
+end
+
+function tanch(x)
+    return x != 0 ? tanh(x) / x : 1.0
+end
+
+function sinch(x)
+    return x != 0 ? sinh(x) / x : 1.0
 end
 
 function x_center(x, v, B)
@@ -35,32 +43,32 @@ function x_bar(theta, x, x_c)
     return theta*x + (1 - theta)*x_c
 end
 
-function theta(h, B)
-    return 1 / sinc(h*norm(B) / 2)^2
+function theta(x)
+    return 1 / sinc(x / 2)^2
 end
 
 function Psi(h, B)
-    # Psi operator from the Appendix
+    # Psi operator in Rodriguez-type formula
     b = norm(B)
-    return I + (1 - tanc(h*b/2))/b^2 * hat(B)^2
+    return I + (1 - tanch(h*b/2))/b^2 * hat(B)^2
 end
 
 function Phi_1(h, B)
-    # Phi_1 operator from the Appendix
+    # Phi_1 operator in Rodriguez-type formula
     b = norm(B)
-    return I + (1-1/sinc(h*b))/b^2 * hat(B)^2
+    return I + (1-1/sinch(h*b))/b^2 * hat(B)^2
 end
 
 function Phi_2(h, B)
-    # Phi_1 operator from the Appendix
+    # Phi_1 operator in Rodriguez-type formula
     b = norm(B)
-    return I + (1-1/sinc(h*b/2)^2)/b^2 * hat(B)^2
+    return I + (1-1/sinch(h*b/2)^2)/b^2 * hat(B)^2
 end
 
 function Gamma(h, B)
-    # Gamma operator from the Appendix
+    # Gamma operator in Rodriguez-type formula
     b = norm(B)
-    return (1 - 1/sinc(h*b))/(h*b^2)*hat(B)
+    return (1 - 1/sinch(h*b))/(h*b^2)*hat(B)
 end
 
 function system!(du, u, p, t)
