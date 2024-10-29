@@ -111,7 +111,7 @@ function runge_kutta(x_0, v_0, t::Tuple, nt::Int, epsilon)
 
     # Solving the system using a Runge-Kutta method
     prob = ODEProblem(system!, u0, (t0, tf), [epsilon])
-    sol = solve(prob, Tsit5())
+    sol = solve(prob, Vern7(), saveat = time)
 
     # Recovering the states corresponding to the times
     u_t = sol(time).u
@@ -190,7 +190,7 @@ function boris_impA(x_0, v_0, t::Tuple, nt::Int, epsilon)
         # v^{n-1/2}_{+}
         v_plus = v + h / 2 * Psi(h,  B_n) * E_n
 
-        theta_n = theta(h, B_n)
+        theta_n = theta(h*norm(B_n))
         
         # ﬁxed-point iteration to solve for x_bar_n
         x_bar_n = x
