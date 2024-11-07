@@ -48,25 +48,25 @@ function theta(x)
 end
 
 function Psi(h, B)
-    # Psi operator in Rodrigues-type formula
+    # Psi operator in Rodriguez-like formula
     b = norm(B)
     return I + (1 - tanch(h*b/2))/b^2 * hat(B)^2
 end
 
 function Phi_1(h, B)
-    # Phi_1 operator in Rodrigues-type formula
+    # Phi_1 operator in Rodriguez-like formula
     b = norm(B)
     return I + (1-1/sinch(h*b))/b^2 * hat(B)^2
 end
 
 function Phi_2(h, B)
-    # Phi_1 operator in Rodrigues-type formula
+    # Phi_1 operator in Rodriguez-like formula
     b = norm(B)
     return I + (1-1/sinch(h*b/2)^2)/b^2 * hat(B)^2
 end
 
 function Gamma(h, B)
-    # Gamma operator in Rodrigues-type formula
+    # Gamma operator in Rodriguez-like formula
     b = norm(B)
     return (1 - 1/sinch(h*b))/(h*b^2)*hat(B)
 end
