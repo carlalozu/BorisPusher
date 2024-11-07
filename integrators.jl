@@ -2,63 +2,6 @@ using DifferentialEquations
 using LinearAlgebra
 include("utils.jl")
 
-function leapfrog(x_0, v_0, t::Tuple, nt::Int, epsilon)
-    # Leapfrog integrator
-
-    # Parameters
-    (t0, tf) = t
-    h = (tf - t0) / (nt - 1)
-
-    # Arrays to store the state
-    x_t = Array{Float64}(undef, 3, nt)
-    v_t = Array{Float64}(undef, 3, nt)
-
-    x = x_0
-    v = v_0
-
-    # Initial half-step for velocity
-    v = v + 0.5 * h * (cross(v, B(x, epsilon)) + E(x))
-    for i in 1:nt
-        # Store the current position and velocity
-        x_t[:, i] = x
-        v_t[:, i] = v
-
-        # Update the position by a full step
-        x = x + v * h
-
-        # Update the velocity by a full step
-        v = v + h * (cross(v, B(x, epsilon)) + E(x))
-    end
-
-    return x_t, v_t
-end
-
-function euler(x_0, v_0, t::Tuple, nt::Int, epsilon)
-    # euler integrator from analytical mechanics
-
-    # Parameters
-    (t0, tf) = t
-    h = (tf - t0) / (nt - 1)
-
-    # Arrays to store the state
-    x_t = Array{Float64}(undef, 3, nt)
-    v_t = Array{Float64}(undef, 3, nt)
-
-    v = v_0
-    x = x_0
-    for i in 1:nt
-        # Store the position and velocity
-        x_t[:, i] = x
-        v_t[:, i] = v
-
-        a = cross(v, B(x, epsilon)) + E(x)
-        v = v + a * h
-        x = x + v * h
-    end
-
-    return x_t, v_t
-end
-
 function boris(x_0, v_0, t::Tuple, nt::Int, epsilon)
     # standard Boris integrator
 
@@ -85,9 +28,10 @@ function boris(x_0, v_0, t::Tuple, nt::Int, epsilon)
 
         # Magnetic field rotation
         t_ = h / 2 * B(x, epsilon)
+        s = 2 * t_ / (1 + dot(t_, t_))
+
         v_prime = v_minus .+ cross(v_minus, t_)
-        s = 2 / (1 + dot(t_, t_))
-        v_plus = v_minus .+ s * cross(v_prime, t_)
+        v_plus = v_minus .+ cross(v_prime, s)
 
         # Half step of the velocity again
         v = v_plus .+ h / 2 * E(x)
@@ -127,7 +71,7 @@ function runge_kutta(x_0, v_0, t::Tuple, nt::Int, epsilon)
 end
 
 function boris_expA(x_0, v_0, t::Tuple, nt::Int, epsilon)
-    # standard Boris integrator
+    """Explicit filtered Boris integrator"""
 
     # Parameters
     (t0, tf) = t
@@ -164,7 +108,7 @@ function boris_expA(x_0, v_0, t::Tuple, nt::Int, epsilon)
 end
 
 function boris_impA(x_0, v_0, t::Tuple, nt::Int, epsilon)
-    # standard Boris integrator
+    """Implicit filtered Boris integrator"""
 
     # Parameters
     (t0, tf) = t
@@ -223,7 +167,7 @@ end
 
 
 function boris_twoPA(x_0, v_0, t::Tuple, nt::Int, epsilon)
-    # standard Boris integrator
+    """Two-point filtered Boris integrator"""
 
     # Parameters
     (t0, tf) = t
