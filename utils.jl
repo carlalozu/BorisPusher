@@ -7,12 +7,12 @@ end
 
 function B(x, epsilon)
     # magnetic field
-    return [0, 0, 1.0 / epsilon]
+    return [-x[1], 0, x[3] + 1.0 / epsilon]
 end
 
 function E(x)
     # electric field: minus gradient of potential
-    return [0, 0,0 ]
+    return [x[1], x[2], 0] / (x[1] .^ 2 + x[2] .^ 2)^(3 / 2)
 end
 
 function hat(X)
