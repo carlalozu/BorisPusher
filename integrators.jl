@@ -2,14 +2,13 @@ using DifferentialEquations
 using LinearAlgebra
 include("utils.jl")
 
-function boris(x_0, v_0, t::Tuple, nt::Int, epsilon)
-    # standard Boris integrator
-
+function boris(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
+    """Standard Boris integrator"""
     # Parameters
     (t0, tf) = t
     h = (tf - t0) / (nt - 1)
 
-    # Arrays to store the state
+    # Arrays to store the states
     x_t = Array{Float64}(undef, 3, nt)
     v_t = Array{Float64}(undef, 3, nt)
 
@@ -23,29 +22,30 @@ function boris(x_0, v_0, t::Tuple, nt::Int, epsilon)
         x_t[:, i] = x
         v_t[:, i] = v
 
+        E_n =  E(x)
+        B_n = B(x, epsilon)
+
         # Half step of velocity due to electric field
-        v_minus = v .+ h / 2 * E(x)
+        v_minus = v .+ h / 2 * E_n
 
         # Magnetic field rotation
-        t_ = h / 2 * B(x, epsilon)
+        t_ = h / 2 * B_n
         s = 2 * t_ / (1 + dot(t_, t_))
 
         v_prime = v_minus .+ cross(v_minus, t_)
         v_plus = v_minus .+ cross(v_prime, s)
 
         # Half step of the velocity again
-        v = v_plus .+ h / 2 * E(x)
+        v = v_plus .+ h / 2 * E_n
 
         # Full step of the position
         x = x .+ h * v
-
     end
-
     return x_t, v_t
 end
 
-function runge_kutta(x_0, v_0, t::Tuple, nt::Int, epsilon)
-    # Runge-Kutta integrator
+function runge_kutta(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
+    """Runge-Kutta integrator"""
 
     # Parameters
     (t0, tf) = t
@@ -70,7 +70,7 @@ function runge_kutta(x_0, v_0, t::Tuple, nt::Int, epsilon)
     return x_t, v_t
 end
 
-function boris_expA(x_0, v_0, t::Tuple, nt::Int, epsilon)
+function boris_expA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     """Explicit filtered Boris integrator"""
 
     # Parameters
@@ -86,19 +86,23 @@ function boris_expA(x_0, v_0, t::Tuple, nt::Int, epsilon)
 
     # Initial half-step for velocity
     v = v - (cross(v, B(x, epsilon)) + E(x))*h/2
+    # E_n = E(x)
+    # B_n = B(x, epsilon)
+    # v = phi_1(h, B_n)*(v + h*Gamma(h, B_n)*E_n) - h/2* Psi(h, B_n)*E_n
     for i in 1:nt
         # Store the position and velocity
         x_t[:, i] = x
         v_t[:, i] = v
 
+        E_n = E(x)
         B_n = B(x, epsilon)
 
-        v_plus = v + h / 2 * Psi(h,  B_n) * E(x)
+        v_plus = v + h / 2 * Psi(h,  B_n) * E_n
 
         # for theta = 1, x_bar = x
         v_minus = exp(-h*hat(B_n)) * v_plus
 
-        v = v_minus + h / 2 * Psi(h,  B_n) * E(x)
+        v = v_minus + h / 2 * Psi(h,  B_n) * E_n
 
         # Full step of the position
         x = x + h * v
@@ -107,7 +111,7 @@ function boris_expA(x_0, v_0, t::Tuple, nt::Int, epsilon)
     return x_t, v_t
 end
 
-function boris_impA(x_0, v_0, t::Tuple, nt::Int, epsilon)
+function boris_impA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     """Implicit filtered Boris integrator"""
 
     # Parameters
@@ -142,7 +146,7 @@ function boris_impA(x_0, v_0, t::Tuple, nt::Int, epsilon)
         v_minus = 0
         while tol > 1e-8
             B_bar_n = B(x_bar_n, epsilon)
-            # v^{n-1/2}_{-} = exp(-h*hat_bar_n)) * v^{n-1/2}_{+}
+            # v^{n-1/2}_{-} = exp(-h*hat_B_bar_n)) * v^{n-1/2}_{+}
             v_minus = exp(-h*hat(B_bar_n)) * v_plus
 
             # v^n
@@ -166,7 +170,7 @@ function boris_impA(x_0, v_0, t::Tuple, nt::Int, epsilon)
 end
 
 
-function boris_twoPA(x_0, v_0, t::Tuple, nt::Int, epsilon)
+function boris_twoPA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     """Two-point filtered Boris integrator"""
 
     # Parameters

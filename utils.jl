@@ -7,14 +7,13 @@ end
 
 function B(x, epsilon)
     # magnetic field
-    return [-x[1], 0, x[3] + 1.0 / epsilon]
+    return [0, 0, 1.0 / epsilon]
 end
 
 function E(x)
     # electric field: minus gradient of potential
-    return [x[1], x[2], 0] / (x[1] .^ 2 + x[2] .^ 2)^(3 / 2)
+    return [0, 0,0 ]
 end
-
 
 function hat(X)
     # 3x3 Matrix that gives the cross product with matrix X
@@ -50,25 +49,31 @@ end
 function Psi(h, B)
     # Psi operator in Rodriguez-like formula
     b = norm(B)
-    return I + (1 - tanch(h*b/2))/b^2 * hat(B)^2
+    return I + (1 - tanc(h*b/2))/b^2 * hat(B)^2
 end
 
 function Phi_1(h, B)
     # Phi_1 operator in Rodriguez-like formula
     b = norm(B)
-    return I + (1-1/sinch(h*b))/b^2 * hat(B)^2
+    return I + (1-1/sinc(h*b))/b^2 * hat(B)^2
 end
 
 function Phi_2(h, B)
     # Phi_1 operator in Rodriguez-like formula
     b = norm(B)
-    return I + (1-1/sinch(h*b/2)^2)/b^2 * hat(B)^2
+    return I + (1-1/sinc(h*b/2)^2)/b^2 * hat(B)^2
 end
 
 function Gamma(h, B)
     # Gamma operator in Rodriguez-like formula
     b = norm(B)
-    return (1 - 1/sinch(h*b))/(h*b^2)*hat(B)
+    return (1 - 1/sinc(h*b))/(h*b^2)*hat(B)
+end
+
+function phi_1(h, B)
+    # Gamma operator in Rodriguez-like formula
+    b = norm(B)
+    return (1 - exp(h*b))/(h*b^2)*hat(B)
 end
 
 function system!(du, u, p, t)
