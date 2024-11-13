@@ -44,11 +44,11 @@ for j in 4:13
     x_tBIA, v_tBIA = boris_impA(x_0, v_0, (t0, tf), nt, epsilon);
     x_tBT, v_tBT = boris_twoPA(x_0, v_0, (t0, tf), nt, epsilon);
 
-    # mean square error
-    push!(error_SB, sum(sqrt.(sum((x_tRK .- x_tSB).^2, dims=1)))/nt)
-    push!(error_BEA, sum(sqrt.(sum((x_tRK .- x_tBEA).^2, dims=1)))/nt)
-    push!(error_BIA, sum(sqrt.(sum((x_tRK .- x_tBIA).^2, dims=1)))/nt)
-    push!(error_BT, sum(sqrt.(sum((x_tRK .- x_tBT).^2, dims=1)))/nt)
+    # global error
+    push!(error_SB, sum(abs.(x_tRK .- x_tSB), dims=1)[nt-1])
+    push!(error_BEA, sum(abs.(x_tRK .- x_tBEA), dims=1)[nt-1])
+    push!(error_BIA, sum(abs.(x_tRK .- error_BIA), dims=1)[nt-1])
+    push!(error_BT, sum(abs.(x_tRK .- x_tBT), dims=1)[nt-1])
 
 end
 
