@@ -20,18 +20,6 @@ function hat(X)
     return [0 -X[3] X[2]; X[3] 0 -X[1]; -X[2] X[1] 0]
 end
 
-function tanc(x)
-    return x != 0 ? tan(x) / x : 1.0
-end
-
-function tanch(x)
-    return x != 0 ? tanh(x) / x : 1.0
-end
-
-function sinch(x)
-    return x != 0 ? sinh(x) / x : 1.0
-end
-
 function x_center(x, v, B)
     # Center of the cyclotron motion
     return x + cross(v, B) / norm(B)^2
@@ -44,36 +32,6 @@ end
 
 function theta(x)
     return 1 / sinc(x / 2)^2
-end
-
-function Psi(h, B)
-    # Psi operator in Rodriguez-like formula
-    b = norm(B)
-    return I + (1 - tanc(h*b/2))/b^2 * hat(B)^2
-end
-
-function Phi_1(h, B)
-    # Phi_1 operator in Rodriguez-like formula
-    b = norm(B)
-    return I + (1-1/sinc(h*b))/b^2 * hat(B)^2
-end
-
-function Phi_2(h, B)
-    # Phi_1 operator in Rodriguez-like formula
-    b = norm(B)
-    return I + (1-1/sinc(h*b/2)^2)/b^2 * hat(B)^2
-end
-
-function Gamma(h, B)
-    # Gamma operator in Rodriguez-like formula
-    b = norm(B)
-    return (1 - 1/sinc(h*b))/(h*b^2)*hat(B)
-end
-
-function phi_1(h, B)
-    # Gamma operator in Rodriguez-like formula
-    b = norm(B)
-    return (1 - exp(h*b))/(h*b^2)*hat(B)
 end
 
 function system!(du, u, p, t)

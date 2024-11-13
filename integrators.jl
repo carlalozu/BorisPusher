@@ -1,7 +1,3 @@
-using DifferentialEquations
-using LinearAlgebra
-include("utils.jl")
-
 function boris(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     """Standard Boris integrator"""
     # Parameters
@@ -85,10 +81,10 @@ function boris_expA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float6
     x = x_0
 
     # Initial half-step for velocity
-    v = v - (cross(v, B(x, epsilon)) + E(x))*h/2
-    # E_n = E(x)
-    # B_n = B(x, epsilon)
-    # v = phi_1(h, B_n)*(v + h*Gamma(h, B_n)*E_n) - h/2* Psi(h, B_n)*E_n
+    E_n = E(x)
+    B_n = B(x, epsilon)
+    # v = v - (cross(v, B_n) + E_n)*h/2
+    v = phi_1(h*B_n)*(v + h*Gamma(h*B_n)*E_n) - h/2* Psi(h*B_n)*E_n
     for i in 1:nt
         # Store the position and velocity
         x_t[:, i] = x
@@ -97,12 +93,12 @@ function boris_expA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float6
         E_n = E(x)
         B_n = B(x, epsilon)
 
-        v_plus = v + h / 2 * Psi(h,  B_n) * E_n
+        v_plus = v + h / 2 * Psi(h*B_n) * E_n
 
         # for theta = 1, x_bar = x
         v_minus = exp(-h*hat(B_n)) * v_plus
 
-        v = v_minus + h / 2 * Psi(h,  B_n) * E_n
+        v = v_minus + h / 2 * Psi(h*B_n) * E_n
 
         # Full step of the position
         x = x + h * v
@@ -126,7 +122,15 @@ function boris_impA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float6
     x = x_0
 
     # Initial half-step for velocity
-    v = v - (cross(v, B(x, epsilon)) + E(x))*h/2
+    E_n = E(x)
+    B_n = B(x, epsilon)
+    x_c = x_center(x, v, B_n)
+    theta_n = theta(h*norm(B_n))
+    x_bar_n = x_bar(theta_n, x, x_c)
+    B_bar_n = B(x_bar_n, epsilon)
+    
+    # v = v - (cross(v, B(x, epsilon)) + E(x))*h/2
+    v = phi_1(h*B_bar_n)*(v + h*Gamma(h*B_n)*E_n) - h/2* Psi(h*B_n)*E_n
     for i in 1:nt
         # Store the position and velocity
         x_t[:, i] = x # x^{n}
@@ -136,7 +140,7 @@ function boris_impA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float6
         B_n = B(x, epsilon)
 
         # v^{n-1/2}_{+}
-        v_plus = v + h / 2 * Psi(h,  B_n) * E_n
+        v_plus = v + h / 2 * Psi(h*B_n) * E_n
 
         theta_n = theta(h*norm(B_n))
         
@@ -150,17 +154,17 @@ function boris_impA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float6
             v_minus = exp(-h*hat(B_bar_n)) * v_plus
 
             # v^n
-            v_n = Phi_1(h, B_bar_n)  * (v_minus + v_plus) / 2 - h * Gamma(h, B_n) * E_n
+            v_n = Phi_1(h*B_bar_n)  * (v_minus + v_plus) / 2 - h * Gamma(h*B_n) * E_n
 
             x_c = x_center(x, v_n, B_n)
             x_bar_n_ = x_bar(theta_n, x, x_c)
 
-            tol = norm(x_bar_n - x_bar_n_) / norm(x_bar_n_)
+            tol = norm(x_bar_n - x_bar_n_) / norm(x_bar_n)
             x_bar_n = x_bar_n_
         end
 
         # v^{n+1/2}
-        v = v_minus + h / 2 * Psi(h,  B_n) * E_n
+        v = v_minus + h / 2 * Psi(h*B_n) * E_n
 
         # Full step of the position x^{n+1}
         x = x + h * v
@@ -195,20 +199,20 @@ function boris_twoPA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float
         E_n = E(x)
 
         # v^{n-1/2}_{+}
-        v_plus = v + h / 2 * Psi(h,  B_n) * E_n
+        v_plus = v + h / 2 * Psi(h*B_n) * E_n
 
         # Approximate v^{n-1/2}_{-}
         v_minus = exp(-h*hat(B_n)) * v_plus
         tol = 1
         while tol > 1e-8
             # Compute v_n by (2.7), with B_n instead of B_bar_n
-            v_n = Phi_1(h, B_n) * 1/2 * (v_minus + v_plus) - h * Gamma(h, B_n) * E_n
+            v_n = Phi_1(h*B_n) * 1/2 * (v_minus + v_plus) - h * Gamma(h*B_n) * E_n
             x_c = x_center(x, v_n, B_n)
             B_c = B(x_c, epsilon)
 
             # Express components of (7.1) in matrix form
-            m_phi2 = Phi_2(h, B_c)
-            m_phi1 = h/2 * hat(B_n) * Phi_1(h, B_n)
+            m_phi2 = Phi_2(h*B_c)
+            m_phi1 = h/2 * hat(B_n) * Phi_1(h*B_n)
 
             # Build the equation 
             M_LHS = m_phi2 + m_phi1
@@ -222,7 +226,7 @@ function boris_twoPA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float
         end
 
         # Update the velocity
-        v = v_minus + h / 2 * Psi(h,  B_n) * E_n
+        v = v_minus + h / 2 * Psi(h*B_n) * E_n
 
         # Full step of the position x^{n+1}
         x = x + h * v
