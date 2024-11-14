@@ -109,18 +109,18 @@ end
 
 function boris_impA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     """Implicit filtered Boris integrator"""
-
+    
     # Parameters
     (t0, tf) = t
     h = (tf - t0) / (nt - 1)
-
+    
     # Arrays to store the state
     x_t = Array{Float64}(undef, 3, nt)
     v_t = Array{Float64}(undef, 3, nt)
-
+    
     v = v_0
     x = x_0
-
+    
     # Initial half-step for velocity
     E_n = E(x)
     B_n = B(x, epsilon)
@@ -135,43 +135,45 @@ function boris_impA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float6
         # Store the position and velocity
         x_t[:, i] = x # x^{n}
         v_t[:, i] = v # v^{n-1/2}
-
+    
         E_n = E(x)
         B_n = B(x, epsilon)
-
+    
         # v^{n-1/2}_{+}
         v_plus = v + h / 2 * Psi(h*B_n) * E_n
-
+    
         theta_n = theta(h*norm(B_n))
         
         # ﬁxed-point iteration to solve for x_bar_n
-        x_bar_n = x
-        tol = 1
-        v_minus = 0
-        while tol > 1e-8
+        function equation(v_n_)
+            x_c = x_center(x, v_n_, B_n)
+            x_bar_n = x_bar(theta_n, x, x_c)
             B_bar_n = B(x_bar_n, epsilon)
             # v^{n-1/2}_{-} = exp(-h*hat_B_bar_n)) * v^{n-1/2}_{+}
             v_minus = exp(-h*hat(B_bar_n)) * v_plus
-
+    
             # v^n
-            v_n = Phi_1(h*B_bar_n)  * (v_minus + v_plus) / 2 - h * Gamma(h*B_n) * E_n
+            lhs = v_n_
+            rhs = Phi_1(h*B_bar_n) * (v_minus + v_plus) / 2 - h * Gamma(h*B_n) * E_n
+            return lhs - rhs
+        end 
 
-            x_c = x_center(x, v_n, B_n)
-            x_bar_n_ = x_bar(theta_n, x, x_c)
-
-            tol = norm(x_bar_n - x_bar_n_) / norm(x_bar_n)
-            x_bar_n = x_bar_n_
-        end
+        # Solve numerically
+        v_n = nlsolve(equation, v).zero
 
         # v^{n+1/2}
+        x_c = x_center(x, v_n, B_n)
+        x_bar_n = x_bar(theta_n, x, x_c)
+        B_bar_n = B(x_bar_n, epsilon)
+        v_minus = exp(-h*hat(B_bar_n)) * v_plus
         v = v_minus + h / 2 * Psi(h*B_n) * E_n
-
+    
         # Full step of the position x^{n+1}
         x = x + h * v
-
+    
     end
     return x_t, v_t
-end
+    end
 
 
 function boris_twoPA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
@@ -188,8 +190,16 @@ function boris_twoPA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float
     v = v_0
     x = x_0
 
+    B_n = B(x, epsilon)
+    E_n = E(x)
+
+    x_c = x_center(x, v, B_n)
+    B_c = B(x_c, epsilon)
+
     # Initial half-step for velocity
-    v = v - (cross(v, B(x, epsilon)) + E(x))*h/2
+    Phi_pm_n = Phi_pm(h*B_n, h*B_c, -1)  # Compute Φⁿ₊ or Φⁿ₋ based on the sign
+    Psi_pm_n = Psi_pm(h*B_n, h*B_c, -1)  # Compute Ψⁿ₊ or Ψⁿ₋ based on the sign
+    v = Phi_pm_n * v - h / 2 * Psi_pm_n * E_n
     for i in 1:nt
         # Store the position and velocity
         x_t[:, i] = x # x^{n}
@@ -204,7 +214,7 @@ function boris_twoPA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float
         # Approximate v^{n-1/2}_{-}
         v_minus = exp(-h*hat(B_n)) * v_plus
         tol = 1
-        while tol > 1e-8
+        while tol > 1e-16
             # Compute v_n by (2.7), with B_n instead of B_bar_n
             v_n = Phi_1(h*B_n) * 1/2 * (v_minus + v_plus) - h * Gamma(h*B_n) * E_n
             x_c = x_center(x, v_n, B_n)
