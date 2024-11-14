@@ -5,7 +5,13 @@
 # include("BorisPusher/run_simulations.jl")
 
 using Plots
+using DifferentialEquations
+using LinearAlgebra
+using NLsolve
 
+include("matrix_funcs.jl")
+include("extras.jl")
+include("utils.jl")
 include("integrators.jl")
 
 # initial position
@@ -26,28 +32,22 @@ epsilons = [];
 for j in 4:13
     epsilon = (1/2)^j;
     push!(epsilons, epsilon)
-    
+
     # h = epsilon, 4*epsilon, 16*epsilon
     h = epsilon;
     nt = Int((tf - t0) / h + 1)
+    println("j = ", j, ", nt = ", nt)
 
-    # Verbose
-    println("j = ", j)
-    println("epsilon = ", epsilon)
-    println("h = ", h)
-    println("nt = ", nt, '\n')
-
-    # compute the trajectories
-    x_tSB, v_tSB = boris(x_0, v_0, (t0, tf), nt, epsilon);
     x_tRK, v_tRK = runge_kutta(x_0, v_0, (t0, tf), nt, epsilon);
+    x_tSB, v_tSB = boris(x_0, v_0, (t0, tf), nt, epsilon);
     x_tBEA, v_tBEA = boris_expA(x_0, v_0, (t0, tf), nt, epsilon);
     x_tBIA, v_tBIA = boris_impA(x_0, v_0, (t0, tf), nt, epsilon);
     x_tBT, v_tBT = boris_twoPA(x_0, v_0, (t0, tf), nt, epsilon);
 
-    # global error
+    # mean square error
     push!(error_SB, sum(abs.(x_tRK .- x_tSB), dims=1)[nt-1])
     push!(error_BEA, sum(abs.(x_tRK .- x_tBEA), dims=1)[nt-1])
-    push!(error_BIA, sum(abs.(x_tRK .- error_BIA), dims=1)[nt-1])
+    push!(error_BIA, sum(abs.(x_tRK .- x_tBIA), dims=1)[nt-1])
     push!(error_BT, sum(abs.(x_tRK .- x_tBT), dims=1)[nt-1])
 
 end
