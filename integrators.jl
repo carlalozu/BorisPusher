@@ -144,7 +144,7 @@ function boris_impA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float6
     
         theta_n = theta(h*norm(B_n))
         
-        # ﬁxed-point iteration to solve for x_bar_n
+        # solve for velocity
         function equation(v_n_)
             x_c = x_center(x, v_n_, B_n)
             x_bar_n = x_bar(theta_n, x, x_c)
@@ -154,7 +154,7 @@ function boris_impA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float6
     
             # v^n
             lhs = v_n_
-            rhs = Phi_1(h*B_bar_n) * (v_minus + v_plus) / 2 - h * Gamma(h*B_n) * E_n
+            rhs = 0.5 * Phi_1(h*B_bar_n) * (v_minus + v_plus) - h * Gamma(h*B_n) * E_n
             return lhs - rhs
         end 
 

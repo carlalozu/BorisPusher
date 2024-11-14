@@ -1,18 +1,18 @@
 function matrix_function(B, fun_)
     B1, B2, B3 = B
-    b = norm(B)^2
+    b = norm(B)
   
-    term1 = 0.5 * (2 * (b - 1 * B2^2 - 1 * B3^2) + (B2^2 + B3^2) * fun_(-1 * im*sqrt(b)) + (B2^2 + B3^2) * fun_(im*sqrt(b))) / b
-    term2 = 0.5 * (2 * B1 * B2 - 1 * (B1 * B2 + im*sqrt(b) * B3) * fun_(-1 * im*sqrt(b)) + (-1 * B1 * B2 + im*sqrt(b) * B3) * fun_(im*sqrt(b))) / b
-    term3 = 0.5 * (2 * B1 * B3 + (im*sqrt(b) * B2 - 1 * B1 * B3) * fun_(-1 * im*sqrt(b)) - 1 * (im*sqrt(b) * B2 + B1 * B3) * fun_(im*sqrt(b))) / b
+    term1 = 0.5 * (2 * fun_(0) * (b^2 - B2^2 - B3^2) + (B2^2 + B3^2) * fun_(-im*b) + (B2^2 + B3^2) * fun_(im*b)) / b^2
+    term2 = 0.5 * (2 * fun_(0) * B1 * B2 - (B1 * B2 + im*b * B3) * fun_(-1 * im*b) + (-B1 * B2 + im*b * B3) * fun_(im*b)) / b^2
+    term3 = 0.5 * (2 * fun_(0) * B1 * B3 + (im*b * B2 - 1 * B1 * B3) * fun_(-1 * im*b) - (im*b * B2 + B1 * B3) * fun_(im*b)) / b^2
   
-    term4 = 0.5 * (2 * B1 * B2 + (-1 * B1 * B2 + im*sqrt(b) * B3) * fun_(-1 * im*sqrt(b)) - 1 * (B1 * B2 + im*sqrt(b) * B3) * fun_(im*sqrt(b))) / b
-    term5 = 0.5 * (2 * B2^2 + (b - 1 * B2^2) * fun_(-1 * im*sqrt(b)) + (b - 1 * B2^2) * fun_(im*sqrt(b))) / b
-    term6 = 0.5 * (2 * B2 * B3 - 1 * (im*sqrt(b) * B1 + B2 * B3) * fun_(-1 * im*sqrt(b)) + (im*sqrt(b) * B1 - 1 * B2 * B3) * fun_(im*sqrt(b))) / b
+    term4 = 0.5 * (2 * fun_(0) * B1 * B2 + (-B1 * B2 + im*b * B3) * fun_(-im*b) - (B1 * B2 + im*b * B3) * fun_(im*b)) / b^2
+    term5 = 0.5 * (2 * fun_(0) * B2^2 + (b^2 - B2^2) * fun_(-1 * im*b) + (b^2 - B2^2) * fun_(im*b)) / b^2
+    term6 = 0.5 * (2 * fun_(0) * B2 * B3 - (im*b * B1 + B2 * B3) * fun_(-im*b) + (im*b * B1 - B2 * B3) * fun_(im*b)) / b^2
   
-    term7 = 0.5 * (2 * B1 * B3 - 1 * (im*sqrt(b) * B2 + B1 * B3) * fun_(-1 * im*sqrt(b)) + (im*sqrt(b) * B2 - 1 * B1 * B3) * fun_(im*sqrt(b))) / b
-    term8 = 0.5 * (2 * B2 * B3 + (im*sqrt(b) * B1 - 1 * B2 * B3) * fun_(-1 * im*sqrt(b)) - 1 * (im*sqrt(b) * B1 + B2 * B3) * fun_(im*sqrt(b))) / b
-    term9 = 0.5 * (2 * B3^2 + (b - 1 * B3^2) * fun_(-1 * im*sqrt(b)) + (b - 1 * B3^2) * fun_(im*sqrt(b))) / b
+    term7 = 0.5 * (2 * fun_(0) * B1 * B3 - (im*b * B2 + B1 * B3) * fun_(-im*b) + (im*b * B2 - B1 * B3) * fun_(im*b)) / b^2
+    term8 = 0.5 * (2 * fun_(0) * B2 * B3 + (im*b * B1 - B2 * B3) * fun_(-im*b) - (im*b * B1 + B2 * B3) * fun_(im*b)) / b^2
+    term9 = 0.5 * (2 * fun_(0) * B3^2 + (b^2 - B3^2) * fun_(-im*b) + (b^2 - B3^2) * fun_(im*b)) / b^2
   
     return real.([
         term1 term2 term3;
@@ -23,11 +23,17 @@ function matrix_function(B, fun_)
 
 
 function tanc(x)
+    if x==0
+        return 1
+    end
     return tan(x) / x
 end
 
 
 function sinch(x)
+    if x==0
+        return 1
+    end
     return sinh(x) / x
 end
 
@@ -40,6 +46,9 @@ end
 
 function Psi(B)
     function psi_(x)
+        if x==0
+            return 1
+        end
         return tanh(x/2) / (x/2)
     end
     return matrix_function(B, psi_)
@@ -53,7 +62,7 @@ end
 
 function Phi_1(B)
     function phi_1_(x)
-        return x/sinh(x)
+        return 1/sinch(x)
     end
     return matrix_function(B, phi_1_)
 end
@@ -66,6 +75,9 @@ end
 
 function Phi_2(B)
     function phi_2_(x)
+        if x==0
+            return 1
+        end
         return ((x/2) / sinh(x/2))^2
     end
     return matrix_function(B, phi_2_)
@@ -79,6 +91,9 @@ end
 
 function Gamma(B)
     function gamma_(x)
+        if x==0
+            return 0
+        end
         return (x/sinh(x)-1)/x
     end
     return matrix_function(B, gamma_)
@@ -92,6 +107,9 @@ end
 
 function phi_1(B)
     function phi1_(x)
+        if x==0
+            return 1
+        end
         return (exp(x)-1)/x
     end
     return matrix_function(B, phi1_)
