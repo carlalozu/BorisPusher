@@ -96,3 +96,33 @@ function phi_1(B)
     end
     return matrix_function(B, phi1_)
 end
+
+# Compute Ψⁿ₊ and Ψⁿ₋ for implicit algorithm
+function Psi_pm_(hB, h_B_bar, sign)
+    Psi_n = Psi(hB)
+    Phi_n = phi_1(-1*sign*h_B_bar)
+    Gamma_n = Gamma(hB)
+    return Psi_n + sign * 2 * Phi_n * Gamma_n
+end
+
+# Compute Λⁿ
+function Lambda(hB, hBc)
+    Phi1 = Phi_1(hB)
+    Phi2 = Phi_2(hBc)
+    return inv(Phi2) * Phi1
+end
+
+# Compute Φⁿ₊ and Φⁿ₋
+function Phi_pm(hB, hBc, sign)
+    Lambda_n = Lambda(hB, hBc)
+    sinch_n = matrix_function(hB, sinch)
+    return (I - sign * 0.5 * Lambda_n * hat(hB)) * sinch_n  # Implementing ± correctly
+end
+
+# Compute Ψⁿ₊ and Ψⁿ₋ for two step map
+function Psi_pm(hB, hBc, sign)
+    Psi_n = Psi(hB)
+    Phi_pm_n = Phi_pm(hB, hBc, sign)
+    Gamma_n = Gamma(hB)
+    return Psi_n + sign * 2 * Phi_pm_n * Gamma_n
+end
