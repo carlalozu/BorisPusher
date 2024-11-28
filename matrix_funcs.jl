@@ -54,7 +54,7 @@ function Psi(B)
     return matrix_function(B, psi_)
 end
 
-# function Phi_1(h, B)
+# function Phi_1(B, h)
 #     # Phi_1 operator in Rodriguez-like formula
 #     b = norm(B)
 #     return I + (1-(h*b)/sin(h*b))/b^2 * hat(B)^2
@@ -67,7 +67,7 @@ function Phi_1(B)
     return matrix_function(B, phi_1_)
 end
 
-# function Phi_2(h, B)
+# function Phi_2(B, h)
 #     # Phi_1 operator in Rodriguez-like formula
 #     b = norm(B)
 #     return I + (1-1/sinc(h*b/2)^2)/b^2 * hat(B)^2
@@ -83,10 +83,10 @@ function Phi_2(B)
     return matrix_function(B, phi_2_)
 end
 
-# function Gamma(h, B)
+# function Gamma(B, h)
 #     # Gamma operator in Rodriguez-like formula
 #     b = norm(B)
-#     return (1 - 1/sinc(h*b))/(h*b^2)*hat(B)
+#     return (1 - (h*b)/sin(h*b))/(h*b^2)*hat(B)
 # end
 
 function Gamma(B)
@@ -99,11 +99,6 @@ function Gamma(B)
     return matrix_function(B, gamma_)
 end
 
-# function phi_1(h, B)
-#     # phi_1 operator in Rodriguez-like formula
-#     b = norm(B)
-#     return (1 - cosc(h * b)) / (h * b^2) * hat(B)
-# end
 
 function phi_1(B)
     function phi1_(x)
@@ -115,36 +110,36 @@ function phi_1(B)
     return matrix_function(B, phi1_)
 end
 
-# Compute Φⁿ₊ and Φⁿ₋ for implicit algorithm
 function Phi_pm_(h_B_bar, sign)
+    # Compute Φⁿ₊ and Φⁿ₋ for implicit algorithm, two step map
     Phi_n = phi_1(-1*sign*h_B_bar)
     return Phi_n
 end
 
-# Compute Ψⁿ₊ and Ψⁿ₋ for implicit algorithm
 function Psi_pm_(hB, h_B_bar, sign)
+    # Compute Ψⁿ₊ and Ψⁿ₋ for implicit algorithm, two step map
     Psi_n = Psi(hB)
     Phi_n = Phi_pm_(h_B_bar, sign)
     Gamma_n = Gamma(hB)
     return Psi_n + sign * 2 * Phi_n * Gamma_n
 end
 
-# Compute Λⁿ
 function Lambda(hB, hBc)
+    # Compute Λⁿ
     Phi1 = Phi_1(hB)
     Phi2 = Phi_2(hBc)
     return inv(Phi2) * Phi1
 end
 
-# Compute Φⁿ₊ and Φⁿ₋
 function Phi_pm(hB, hBc, sign)
+    # Compute Φⁿ₊ and Φⁿ₋
     Lambda_n = Lambda(hB, hBc)
     sinch_n = matrix_function(hB, sinch)
-    return (I - sign * 0.5 * Lambda_n * hat(hB)) * sinch_n  # Implementing ± correctly
+    return (I - sign * 0.5 * Lambda_n * hat(hB)) * sinch_n 
 end
 
-# Compute Ψⁿ₊ and Ψⁿ₋ for two step map
 function Psi_pm(hB, hBc, sign)
+    # Compute Ψⁿ₊ and Ψⁿ₋
     Psi_n = Psi(hB)
     Phi_pm_n = Phi_pm(hB, hBc, sign)
     Gamma_n = Gamma(hB)

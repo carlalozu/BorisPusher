@@ -45,10 +45,10 @@ for j in 4:13
     x_tBT, v_tBT = boris_twoPA_2(x_0, v_0, (t0, tf), nt, epsilon);
 
     # mean square error
-    push!(error_SB, sum(abs.(x_tRK .- x_tSB), dims=1)[nt-1])
-    push!(error_BEA, sum(abs.(x_tRK .- x_tBEA), dims=1)[nt-1])
-    push!(error_BIA, sum(abs.(x_tRK .- x_tBIA), dims=1)[nt-1])
-    push!(error_BT, sum(abs.(x_tRK .- x_tBT), dims=1)[nt-1])
+    push!(error_SB, sum(abs.(x_tRK .- x_tSB), dims=1)[nt])
+    push!(error_BEA, sum(abs.(x_tRK .- x_tBEA), dims=1)[nt])
+    push!(error_BIA, sum(abs.(x_tRK .- x_tBIA), dims=1)[nt])
+    push!(error_BT, sum(abs.(x_tRK .- x_tBT), dims=1)[nt])
 
 end
 

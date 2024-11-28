@@ -40,7 +40,7 @@ function boris(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     return x_t, v_t
 end
 
-function runge_kutta(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
+function runge_kutta(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64, Float64}, nt::Int64, epsilon::Float64)
     """Runge-Kutta integrator"""
 
     # Parameters
@@ -66,7 +66,7 @@ function runge_kutta(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float
     return x_t, v_t
 end
 
-function boris_expA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
+function boris_expA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64, Float64}, nt::Int64, epsilon::Float64)
     """Explicit filtered Boris integrator"""
 
     # Parameters
@@ -107,7 +107,7 @@ function boris_expA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float6
     return x_t, v_t
 end
 
-function boris_impA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
+function boris_impA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64, Float64}, nt::Int64, epsilon::Float64)
     """Implicit filtered Boris integrator"""
     
     # Parameters
@@ -176,7 +176,7 @@ function boris_impA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float6
     end
 
 
-function boris_twoPA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
+function boris_twoPA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64, Float64}, nt::Int64, epsilon::Float64)
     """Two-point filtered Boris integrator"""
 
     # Parameters
