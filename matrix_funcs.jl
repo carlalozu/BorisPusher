@@ -57,7 +57,7 @@ end
 # function Phi_1(h, B)
 #     # Phi_1 operator in Rodriguez-like formula
 #     b = norm(B)
-#     return I + (1-1/sinc(h*b))/b^2 * hat(B)^2
+#     return I + (1-(h*b)/sin(h*b))/b^2 * hat(B)^2
 # end
 
 function Phi_1(B)

@@ -51,7 +51,7 @@ function runge_kutta(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float
 
     # Solving the system using a Runge-Kutta method
     prob = ODEProblem(system!, u0, (t0, tf), [epsilon])
-    sol = solve(prob, Vern7(), saveat = time)
+    sol = solve(prob, Vern9(), saveat = time)
 
     # Recovering the states corresponding to the times
     u_t = sol(time).u

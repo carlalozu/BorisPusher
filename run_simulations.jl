@@ -41,8 +41,8 @@ for j in 4:13
     x_tRK, v_tRK = runge_kutta(x_0, v_0, (t0, tf), nt, epsilon);
     x_tSB, v_tSB = boris(x_0, v_0, (t0, tf), nt, epsilon);
     x_tBEA, v_tBEA = boris_expA(x_0, v_0, (t0, tf), nt, epsilon);
-    x_tBIA, v_tBIA = boris_impA(x_0, v_0, (t0, tf), nt, epsilon);
-    x_tBT, v_tBT = boris_twoPA(x_0, v_0, (t0, tf), nt, epsilon);
+    x_tBIA, v_tBIA = boris_impA_2(x_0, v_0, (t0, tf), nt, epsilon);
+    x_tBT, v_tBT = boris_twoPA_2(x_0, v_0, (t0, tf), nt, epsilon);
 
     # mean square error
     push!(error_SB, sum(abs.(x_tRK .- x_tSB), dims=1)[nt-1])
