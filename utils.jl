@@ -31,7 +31,8 @@ function x_bar(theta, x, x_c)
 end
 
 function theta(x)
-    return 1 / sinc(x / 2)^2
+    # DONT TRUST SINC IN JULIA IT USES 2PI
+    return ((x / 2) / sin(x / 2))^2
 end
 
 function system!(du, u, p, t)
