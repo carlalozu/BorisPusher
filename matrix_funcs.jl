@@ -115,10 +115,16 @@ function phi_1(B)
     return matrix_function(B, phi1_)
 end
 
+# Compute Φⁿ₊ and Φⁿ₋ for implicit algorithm
+function Phi_pm_(h_B_bar, sign)
+    Phi_n = phi_1(-1*sign*h_B_bar)
+    return Phi_n
+end
+
 # Compute Ψⁿ₊ and Ψⁿ₋ for implicit algorithm
 function Psi_pm_(hB, h_B_bar, sign)
     Psi_n = Psi(hB)
-    Phi_n = phi_1(-1*sign*h_B_bar)
+    Phi_n = Phi_pm_(h_B_bar, sign)
     Gamma_n = Gamma(hB)
     return Psi_n + sign * 2 * Phi_n * Gamma_n
 end

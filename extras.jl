@@ -88,10 +88,9 @@ function boris_impA_2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Floa
 
 
         # Full step of the position x^{n+1}
-        x_ = x + h*phi_1(-h*B_bar_n)*v + h^2/2*Psi_pm_(h*B_n, h*B_bar_n, +1)*E_n
+        x_ = x + h*Phi_pm_(h*B_bar_n, +1)*v + h^2/2*Psi_pm_(h*B_n, h*B_bar_n, +1)*E_n
     
         function equation_imp(v_)
-
             # At x+1 position
             B_n_ = B(x_, epsilon)
             x_c_ = x_center(x_, v_, B_n_)
@@ -99,17 +98,17 @@ function boris_impA_2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Floa
             x_bar_n_ = x_bar(theta_n_, x_, x_c_)
             B_bar_n_ = B(x_bar_n_, epsilon)
 
-            lhs = phi_1(h*B_bar_n_)*v_
+            lhs = Phi_pm_(h*B_bar_n_, -1)*v_
 
-            term_1 = phi_1(-h*B_bar_n)*v 
+            term_1 = Phi_pm_(h*B_bar_n, +1)*v
             term_2 = h/2*Psi_pm_(h*B_n_, h*B_bar_n_, -1)*E(x_)
-            term_3 = h/2*Psi_pm_(h*B_n, h*B_bar_n, +1)*E_n
+            term_3 = h/2*Psi_pm_(h*B_n, h*B_bar_n, +1)*E(x)
 
             rhs = term_1 + term_2 + term_3
             return lhs - rhs
         end
         
-        v_guess = v
+        v_guess = deepcopy(v)
         v = nlsolve(equation_imp, v_guess).zero
         x = x_
 
@@ -145,15 +144,15 @@ function boris_twoPA_2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Flo
         # Full step of the position x^{n+1}
         x_ = x + h*Phi_pm(h*B_n, h*B_c, +1)*v + h^2/2*Psi_pm(h*B_n, h*B_c, +1)*E_n
 
-        function equation_twop(v_n)
+        function equation_twop(v_)
 
             B_n_ = B(x_, epsilon)
-            x_c_ = x_center(x_, v_n, B_n_)
+            x_c_ = x_center(x_, v_, B_n_)
             B_c_ = B(x_c_, epsilon)
 
-            lhs = Phi_pm(h*B_n_, h*B_c_, -1)*v_n
+            lhs = Phi_pm(h*B_n_, h*B_c_, -1)*v_
 
-            term_1 = Phi_pm(h*B_n, h*B_c, +1)*v 
+            term_1 = Phi_pm(h*B_n, h*B_c, +1)*v
             term_2 = h/2*Psi_pm(h*B_n_, h*B_c_, -1)*E(x_) 
             term_3 = h/2*Psi_pm(h*B_n,  h*B_c, +1)*E_n
             
@@ -162,7 +161,7 @@ function boris_twoPA_2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Flo
             return lhs - rhs
         end
         
-        v_guess = v
+        v_guess = deepcopy(v)
         v = nlsolve(equation_twop, v_guess).zero
         x = x_
 
