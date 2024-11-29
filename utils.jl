@@ -27,7 +27,7 @@ end
 
 function x_bar(theta, x, x_c)
     # Average position
-    return theta*x + (1 - theta)*x_c
+    return theta * x + (1 - theta) * x_c
 end
 
 function theta(x)
@@ -47,4 +47,13 @@ function system!(du, u, p, t)
     du[4] = x2 / (x1^2 + x2^2)^(3 / 2) - x3_prime * x1 - x1_prime * (1.0 / epsilon + x3) # x2''
     du[5] = x3_prime            # x3' = x3_prime
     du[6] = x2_prime * x1       # x3''
+end
+
+function parallel_velocity(x, v)
+    "Compute parallel velocity from position and velocity through Magnetic field"
+    B_n = B(x, epsilon)
+    b_n = norm(B_n)
+
+    return B_n / b_n * dot(B_n / b_n, v)
+
 end
