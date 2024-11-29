@@ -5,8 +5,8 @@ function boris(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     h = (tf - t0) / (nt - 1)
 
     # Arrays to store the states
-    x_t = Array{Float64}(undef, 3, nt)
-    v_t = Array{Float64}(undef, 3, nt)
+    x_t = Array{Float64}(undef, nt, 3)
+    v_t = Array{Float64}(undef, nt, 3)
 
     v = v_0
     x = x_0
@@ -15,8 +15,8 @@ function boris(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     v = v - (cross(v, B(x, epsilon)) + E(x))*h/2
     for i in 1:nt
         # Store the position and velocity
-        x_t[:, i] = x
-        v_t[:, i] = v
+        x_t[i, :] = x
+        v_t[i, :] = v
 
         E_n =  E(x)
         B_n = B(x, epsilon)
@@ -58,10 +58,10 @@ function runge_kutta(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float6
 
     # Extracting the positions and velocities
     x_t = [[u_t[i][1], u_t[i][3], u_t[i][5]] for i in 1:nt]
-    x_t = hcat(x_t...)
+    x_t = mapreduce(permutedims, vcat, x_t);
 
     v_t = [[u_t[i][2], u_t[i][4], u_t[i][6]] for i in 1:nt]
-    v_t = hcat(v_t...)
+    v_t = mapreduce(permutedims, vcat, v_t);
 
     return x_t, v_t
 end
@@ -74,8 +74,8 @@ function boris_expA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
     h = (tf - t0) / (nt - 1)
 
     # Arrays to store the state
-    x_t = Array{Float64}(undef, 3, nt)
-    v_t = Array{Float64}(undef, 3, nt)
+    x_t = Array{Float64}(undef, nt, 3)
+    v_t = Array{Float64}(undef, nt, 3)
 
     v = v_0
     x = x_0
@@ -87,8 +87,8 @@ function boris_expA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
     v = phi_1(h*B_n)*(v + h*Gamma(h*B_n)*E_n) - h/2* Psi(h*B_n)*E_n
     for i in 1:nt
         # Store the position and velocity
-        x_t[:, i] = x
-        v_t[:, i] = v
+        x_t[i, :] = x
+        v_t[i, :] = v
 
         E_n = E(x)
         B_n = B(x, epsilon)
@@ -115,8 +115,8 @@ function boris_impA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
     h = (tf - t0) / (nt - 1)
     
     # Arrays to store the state
-    x_t = Array{Float64}(undef, 3, nt)
-    v_t = Array{Float64}(undef, 3, nt)
+    x_t = Array{Float64}(undef, nt, 3)
+    v_t = Array{Float64}(undef, nt, 3)
     
     v = v_0
     x = x_0
@@ -133,8 +133,8 @@ function boris_impA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
     v = phi_1(h*B_bar_n)*(v + h*Gamma(h*B_n)*E_n) - h/2* Psi(h*B_n)*E_n
     for i in 1:nt
         # Store the position and velocity
-        x_t[:, i] = x # x^{n}
-        v_t[:, i] = v # v^{n-1/2}
+        x_t[i, :] = x # x^{n}
+        v_t[i, :] = v # v^{n-1/2}
     
         E_n = E(x)
         B_n = B(x, epsilon)
@@ -184,8 +184,8 @@ function boris_twoPA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float6
     h = (tf - t0) / (nt - 1)
 
     # Arrays to store the state
-    x_t = Array{Float64}(undef, 3, nt)
-    v_t = Array{Float64}(undef, 3, nt)
+    x_t = Array{Float64}(undef, nt, 3)
+    v_t = Array{Float64}(undef, nt, 3)
 
     v = v_0
     x = x_0
@@ -202,8 +202,8 @@ function boris_twoPA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float6
     v = Phi_pm_n * v - h / 2 * Psi_pm_n * E_n
     for i in 1:nt
         # Store the position and velocity
-        x_t[:, i] = x # x^{n}
-        v_t[:, i] = v # v^{n-1/2}
+        x_t[i, :] = x # x^{n}
+        v_t[i, :] = v # v^{n-1/2}
 
         B_n = B(x, epsilon)
         E_n = E(x)

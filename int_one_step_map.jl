@@ -9,8 +9,8 @@ function boris2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     h = (tf - t0) / (nt - 1)
 
     # Arrays to store the states
-    x_t = Array{Float64}(undef, 3, nt)
-    v_t = Array{Float64}(undef, 3, nt)
+    x_t = Array{Float64}(undef, nt, 3)
+    v_t = Array{Float64}(undef, nt, 3)
 
     v = v_0
     x = x_0
@@ -19,8 +19,8 @@ function boris2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     v_ = v - (cross(v, B(x, epsilon)) + E(x))*h/2
     for i in 1:nt
         # Store the position and velocity
-        x_t[:, i] = x
-        v_t[:, i] = v
+        x_t[i, :] = x # x^n
+        v_t[i, :] = v # v^n
 
         E_n =  E(x)
         B_n = B(x, epsilon)
@@ -40,6 +40,8 @@ function boris2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
 
         # Full step of the position
         x = x .+ h * v_
+
+        # TODO: Recover velocity from half step velocity
         v = v_plus
 
     end
@@ -54,16 +56,16 @@ function boris_expA2(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float6
     h = (tf - t0) / (nt - 1)
 
     # Arrays to store the state
-    x_t = Array{Float64}(undef, 3, nt)
-    v_t = Array{Float64}(undef, 3, nt)
+    x_t = Array{Float64}(undef, nt, 3)
+    v_t = Array{Float64}(undef, nt, 3)
 
     x = x_0
     v = v_0
 
     for i in 1:nt
         # Store the position and velocity
-        x_t[:, i] = x # x^{n}
-        v_t[:, i] = v # v^{n-1/2}
+        x_t[i, :] = x # x^n
+        v_t[i, :] = v # v^n
 
         E_n = E(x)
         B_n = B(x, epsilon)
@@ -100,16 +102,16 @@ function boris_impA2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float
     h = (tf - t0) / (nt - 1)
 
     # Arrays to store the state
-    x_t = Array{Float64}(undef, 3, nt)
-    v_t = Array{Float64}(undef, 3, nt)
+    x_t = Array{Float64}(undef, nt, 3)
+    v_t = Array{Float64}(undef, nt, 3)
 
     x = x_0
     v = v_0
 
     for i in 1:nt
         # Store the position and velocity
-        x_t[:, i] = x # x^{n}
-        v_t[:, i] = v # v^{n-1/2}
+        x_t[i, :] = x # x^n
+        v_t[i, :] = v # v^n
 
         E_n = E(x)
         B_n = B(x, epsilon)
@@ -156,16 +158,16 @@ function boris_twoPA2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Floa
     h = (tf - t0) / (nt - 1)
 
     # Arrays to store the state
-    x_t = Array{Float64}(undef, 3, nt)
-    v_t = Array{Float64}(undef, 3, nt)
+    x_t = Array{Float64}(undef, nt, 3)
+    v_t = Array{Float64}(undef, nt, 3)
 
     x = x_0
     v = v_0
 
     for i in 1:nt
         # Store the position and velocity
-        x_t[:, i] = x # x^{n}
-        v_t[:, i] = v # v^{n-1/2}
+        x_t[i, :] = x # x^n
+        v_t[i, :] = v # v^n
 
         E_n = E(x)
         B_n = B(x, epsilon)
@@ -193,8 +195,7 @@ function boris_twoPA2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Floa
             return lhs - rhs
         end
 
-        v_guess = deepcopy(v)
-        v = nlsolve(equation_twop, v_guess).zero
+        v = nlsolve(equation_twop, v).zero
         x = x_
 
     end
