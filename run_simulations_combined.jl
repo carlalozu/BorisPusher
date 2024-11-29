@@ -1,7 +1,14 @@
+# To run script open julia terminal and run the following commands:
+# import Pkg
+# Pkg.activate("BorisPusher/Boris")
+# include("BorisPusher/run_simulations_combined.jl")
+
 using Plots
 using DifferentialEquations
 using LinearAlgebra
 using NLsolve
+using LaTeXStrings
+using Measures
 
 include("matrix_funcs.jl")
 include("extras.jl")
@@ -11,15 +18,15 @@ include("integrators.jl")
 # Initial position
 x_0 = [1/3, 1/4, 1/2];
 # Initial velocity
-v_0 = [2/5, 2/3, 1];
+v_0 = [2/5, 2/3, 1.];
 
 # Numerical parameters, time
-t0 = 0;
-tf = 1;
+t0 = 0.;
+tf = 1.;
 
 # Create a figure layout for subplots
 plot_layout = @layout [a b c]  # Three horizontal subplots
-p = plot(layout=plot_layout, size=(1200, 400))
+p = plot(layout=plot_layout, size=(1400, 600), link=:y)
 
 for (idx, c) in enumerate([1, 4, 16])
     # Arrays to store the errors
@@ -32,18 +39,18 @@ for (idx, c) in enumerate([1, 4, 16])
         epsilon = (1/2)^j;
         push!(epsilons, epsilon)
 
-        # h = epsilon, 4*epsilon, 16*epsilon
         h = c*epsilon;
         nt = Int((tf - t0) / h + 1)
         println("j = ", j, ", nt = ", nt)
 
+        # Run simulations
         x_tRK, v_tRK = runge_kutta(x_0, v_0, (t0, tf), nt, epsilon);
         x_tSB, v_tSB = boris(x_0, v_0, (t0, tf), nt, epsilon);
         x_tBEA, v_tBEA = boris_expA(x_0, v_0, (t0, tf), nt, epsilon);
         x_tBIA, v_tBIA = boris_impA_2(x_0, v_0, (t0, tf), nt, epsilon);
         x_tBT, v_tBT = boris_twoPA_2(x_0, v_0, (t0, tf), nt, epsilon);
 
-        # Mean square error
+        # Global error
         push!(error_SB, sum(abs.(x_tRK .- x_tSB), dims=1)[nt])
         push!(error_BEA, sum(abs.(x_tRK .- x_tBEA), dims=1)[nt])
         push!(error_BIA, sum(abs.(x_tRK .- x_tBIA), dims=1)[nt])
@@ -57,8 +64,9 @@ for (idx, c) in enumerate([1, 4, 16])
     plot!(p[idx], epsilons, error_BT, label="Boris twoP", xscale=:log10, yscale=:log10, marker=:circle)
 
     # Set subplot title and axis labels
-    plot!(p[idx], xlabel=s"$log_{10}(\epsilon)$", ylabel=s"$log_{10}($GE$)$")
-    plot!(p[idx], title=s"Errors of $x$ with $h=$ $(c=*$c$)$")
+    plot!(p[idx], xlabel=L"$\log_{10}(\epsilon)$", ylabel=L"$\log_{10}($GE$)$")
+    plot!(p[idx], title=L"Errors of $x$ with $h=%$c c$")
+    plot!(p, left_margin=10mm, bottom_margin=10mm, top_margin=5mm)
 end
 
 # Save the combined plot as a single image
