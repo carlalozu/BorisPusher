@@ -49,7 +49,7 @@ function system!(du, u, p, t)
     du[6] = x2_prime * x1       # x3''
 end
 
-function parallel_velocity(x, v)
+function parallel_velocity(x, v, epsilon)
     "Compute parallel velocity from position and velocity through Magnetic field"
     B_n = B(x, epsilon)
     b_n = norm(B_n)

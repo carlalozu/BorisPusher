@@ -17,11 +17,11 @@ include("integrators.jl")
 # initial position
 x_0 = [1 / 3, 1 / 4, 1 / 2];
 # initial velocity
-v_0 = [2 / 5, 2 / 3, 1];
+v_0 = [2 / 5, 2 / 3, 1.];
 
 # numerical parameters, time
-t0 = 0;
-tf = 1;
+t0 = 0.;
+tf = 1.;
 
 # array to store the errors
 errors_SB = Array{Float64}(undef, 13 - 4 + 1, 3);
@@ -41,31 +41,31 @@ for j in 4:13
 
     # Runge Kutta (ground truth)
     x_tRK, v_tRK = runge_kutta(x_0, v_0, (t0, tf), nt, epsilon)
-    v_tRK_pa = parallel_velocity.(eachrow(x_tRK), eachrow(v_tRK))
+    v_tRK_pa = parallel_velocity.(eachrow(x_tRK), eachrow(v_tRK), epsilon)
     v_tRK_pa = mapreduce(permutedims, vcat, v_tRK_pa)
     v_tRK_pe = v_tRK - v_tRK_pa
 
     # Standard Boris
     x_tSB, v_tSB = boris2(x_0, v_0, (t0, tf), nt, epsilon)
-    v_tSB_pa = parallel_velocity.(eachrow(x_tSB), eachrow(v_tSB))
+    v_tSB_pa = parallel_velocity.(eachrow(x_tSB), eachrow(v_tSB), epsilon)
     v_tSB_pa = mapreduce(permutedims, vcat, v_tSB_pa)
     v_tSB_pe = v_tSB - v_tSB_pa
 
     # Explicit Filtered Boris
     x_tBEA, v_tBEA = boris_expA2(x_0, v_0, (t0, tf), nt, epsilon)
-    v_tBEA_pa = parallel_velocity.(eachrow(x_tBEA), eachrow(v_tBEA))
+    v_tBEA_pa = parallel_velocity.(eachrow(x_tBEA), eachrow(v_tBEA), epsilon)
     v_tBEA_pa = mapreduce(permutedims, vcat, v_tBEA_pa)
     v_tBEA_pe = v_tBEA - v_tBEA_pa
 
     # Implicit Filtered Boris
     x_tBIA, v_tBIA = boris_impA2(x_0, v_0, (t0, tf), nt, epsilon)
-    v_tBIA_pa = parallel_velocity.(eachrow(x_tBIA), eachrow(v_tBIA))
+    v_tBIA_pa = parallel_velocity.(eachrow(x_tBIA), eachrow(v_tBIA), epsilon)
     v_tBIA_pa = mapreduce(permutedims, vcat, v_tBIA_pa)
     v_tBIA_pe = v_tBIA - v_tBIA_pa
 
     # Two point filtered Boris
     x_tBT, v_tBT = boris_twoPA2(x_0, v_0, (t0, tf), nt, epsilon)
-    v_tBT_pa = parallel_velocity.(eachrow(x_tBT), eachrow(v_tBT))
+    v_tBT_pa = parallel_velocity.(eachrow(x_tBT), eachrow(v_tBT), epsilon)
     v_tBT_pa = mapreduce(permutedims, vcat, v_tBT_pa)
     v_tBT_pe = v_tBT - v_tBT_pa
 
