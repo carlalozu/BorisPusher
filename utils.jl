@@ -27,33 +27,19 @@ end
 
 function x_bar(theta, x, x_c)
     # Average position
-    return theta * x + (1 - theta) * x_c
+    return theta * x + (1. - theta) * x_c
 end
 
 function theta(x)
     # DONT TRUST SINC IN JULIA IT USES 2PI
-    return ((x / 2) / sin(x / 2))^2
-end
-
-function system!(du, u, p, t)
-    # System of equations
-    x1, x1_prime, x2, x2_prime, x3, x3_prime = u
-    epsilon = p[1]
-
-    # Equations
-    du[1] = x1_prime            # x1' = x1_prime
-    du[2] = x1 / (x1^2 + x2^2)^(3 / 2) + x2_prime * (1.0 / epsilon + x3) # x1''
-    du[3] = x2_prime            # x2' = x2_prime
-    du[4] = x2 / (x1^2 + x2^2)^(3 / 2) - x3_prime * x1 - x1_prime * (1.0 / epsilon + x3) # x2''
-    du[5] = x3_prime            # x3' = x3_prime
-    du[6] = x2_prime * x1       # x3''
+    return ((x / 2.) / sin(x / 2.))^2
 end
 
 function parallel_velocity(x, v, epsilon)
     "Compute parallel velocity from position and velocity through Magnetic field"
-    B_n = B(x, epsilon)
-    b_n = norm(B_n)
+    B_n_ = B(x, epsilon)
+    b_n_ = norm(B_n_)
 
-    return B_n / b_n * dot(B_n / b_n, v)
+    return B_n_ / b_n_ * dot(B_n_ / b_n_, v)
 
 end

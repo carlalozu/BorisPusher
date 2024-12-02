@@ -1,6 +1,8 @@
 using LinearAlgebra
-include("utils.jl")
+using NLsolve
 
+include("utils.jl")
+include("matrix_funcs.jl")
 
 function boris2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     """Standard Boris integrator"""
@@ -42,7 +44,7 @@ function boris2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
         x = x .+ h * v_
 
         # TODO: Recover velocity from half step velocity
-        v = v_plus
+        v = v_
 
     end
     return x_t, v_t

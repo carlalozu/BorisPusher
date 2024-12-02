@@ -40,32 +40,6 @@ function boris(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     return x_t, v_t
 end
 
-function runge_kutta(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64, Float64}, nt::Int64, epsilon::Float64)
-    """Runge-Kutta integrator"""
-
-    # Parameters
-    (t0, tf) = t
-    h = (tf - t0) / (nt - 1)
-    time = t0:h:tf
-    u0 = [x_0[1], v_0[1], x_0[2], v_0[2], x_0[3], v_0[3]]
-
-    # Solving the system using a Runge-Kutta method
-    prob = ODEProblem(system!, u0, (t0, tf), [epsilon])
-    sol = solve(prob, Vern9(), saveat = time)
-
-    # Recovering the states corresponding to the times
-    u_t = sol(time).u
-
-    # Extracting the positions and velocities
-    x_t = [[u_t[i][1], u_t[i][3], u_t[i][5]] for i in 1:nt]
-    x_t = mapreduce(permutedims, vcat, x_t);
-
-    v_t = [[u_t[i][2], u_t[i][4], u_t[i][6]] for i in 1:nt]
-    v_t = mapreduce(permutedims, vcat, v_t);
-
-    return x_t, v_t
-end
-
 function boris_expA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64, Float64}, nt::Int64, epsilon::Float64)
     """Explicit filtered Boris integrator"""
 
