@@ -38,11 +38,11 @@ function sinch(x)
 end
 
 
-# function Psi(h, B)
-#     # Psi operator in Rodriguez-like formula
-#     b = norm(B)
-#     return I + (1 - tanc(h*b/2))/b^2 * hat(B)^2
-# end
+function Psi(B, h)
+    # Psi operator in Rodriguez-like formula
+    b = norm(B)
+    return I + (1 - tanc(h*b/2))/b^2 * hat(B)^2
+end
 
 function Psi(B)
     function psi_(x)
@@ -65,12 +65,6 @@ function Phi_1(B)
         return 1.0/sinch(x)
     end
     return matrix_function(B, phi_1_)
-end
-
-function Phi_2(B, h)
-    # Phi_1 operator in Rodriguez-like formula
-    b = norm(B)
-    return I + (1-1/sinc(h*b/2)^2)/b^2 * hat(B)^2
 end
 
 function Phi_2(B)
