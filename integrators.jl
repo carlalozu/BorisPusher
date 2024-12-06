@@ -58,7 +58,7 @@ function boris_expA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
     E_n = E(x)
     B_n = B(x, epsilon)
     # v = v - (cross(v, B_n) + E_n)*h/2
-    v = phi_1(h*B_n)*(v + h*Gamma(B_n, h)*E_n) - h/2* Psi(B_n, h)*E_n
+    v = phi_1(B_n, h)*(v + h*Gamma(B_n, h)*E_n) - h/2* Psi(B_n, h)*E_n
     for i in 1:nt
         # Store the position and velocity
         x_t[i, :] = x
@@ -104,7 +104,7 @@ function boris_impA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
     B_bar_n = B(x_bar_n, epsilon)
     
     # v = v - (cross(v, B(x, epsilon)) + E(x))*h/2
-    v = phi_1(h*B_bar_n)*(v + h*Gamma(B_n, h)*E_n) - h/2* Psi(B_n, h)*E_n
+    v = phi_1(B_bar_n, h)*(v + h*Gamma(B_n, h)*E_n) - h/2* Psi(B_n, h)*E_n
     for i in 1:nt
         # Store the position and velocity
         x_t[i, :] = x # x^{n}
@@ -114,7 +114,7 @@ function boris_impA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
         B_n = B(x, epsilon)
     
         # v^{n-1/2}_{+}
-        v_plus = v + h / 2 * Psi(h*B_n) * E_n
+        v_plus = v + h / 2 * Psi(B_n, h) * E_n
     
         theta_n = theta(h*norm(B_n))
         
@@ -195,7 +195,7 @@ function boris_twoPA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float6
             B_c = B(x_c, epsilon)
 
             # Express components of (7.1) in matrix form
-            m_phi2 = Phi_2(h*B_c)
+            m_phi2 = Phi_2(B_c, h)
             m_phi1 = h/2 * hat(B_n) * Phi_1(B_n, h)
 
             # Build the equation 
