@@ -67,6 +67,12 @@ function Phi_1(B)
     return matrix_function(B, phi_1_)
 end
 
+function Phi_2(B, h)
+    # Gamma operator in Rodriguez-like formula
+    b = norm(B)
+    return I + (1-(h*b/2)^2/sin(h*b/2)^2)/(b*b)*hat(B)^2
+end
+
 function Phi_2(B)
     function phi_2_(x)
         if x==0
@@ -93,6 +99,11 @@ function Gamma(B)
     return matrix_function(B, gamma_)
 end
 
+function phi_1(B, h)
+    # Gamma operator in Rodriguez-like formula
+    b = norm(B)
+    return I + (1-cos(h*b))/(h*b*b)*hat(B) + (1-sin(h*b)/(h*b))/(b*b)*hat(B)^2
+end
 
 function phi_1(B)
     function phi1_(x)
@@ -104,10 +115,22 @@ function phi_1(B)
     return matrix_function(B, phi1_)
 end
 
+function Phi_pm_(B_bar, h, sign)
+    # Compute Φⁿ₊ and Φⁿ₋ for implicit algorithm, two step map
+    return phi_1(B_bar, -1*sign*h)
+end
+
 function Phi_pm_(h_B_bar, sign)
     # Compute Φⁿ₊ and Φⁿ₋ for implicit algorithm, two step map
-    Phi_n = phi_1(-1*sign*h_B_bar)
-    return Phi_n
+    return phi_1(-1*sign*h_B_bar)
+end
+
+function Psi_pm_(B, B_bar, h, sign)
+    # Compute Ψⁿ₊ and Ψⁿ₋ for implicit algorithm, two step map
+    Psi_n = Psi(B, h)
+    Phi_n = Phi_pm_(B_bar, h, sign)
+    Gamma_n = Gamma(B, h)
+    return Psi_n + sign * 2.0 * Phi_n * Gamma_n
 end
 
 function Psi_pm_(hB, h_B_bar, sign)
