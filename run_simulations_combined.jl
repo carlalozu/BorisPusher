@@ -110,6 +110,11 @@ for (idx, c) in enumerate([1, 4, 16])
         ylims = (10e-10, 10e2)
         yticks = 2:-2:-8
     end
+
+    # Reference slope
+    slope_1 = epsilons
+    slope_2 = epsilons.^2
+
     idx += 1
     plot!(p[idx], xscale=:log10, yscale=:log10)
     plot!(p[idx], epsilons, errors_BEA[:, 1], label="Exp-A", marker=:square)
@@ -120,6 +125,8 @@ for (idx, c) in enumerate([1, 4, 16])
     plot!(p[idx], xlabel=L"$\log_{10}(\epsilon)$", ylabel=L"$\log_{10}($GE$)$")
     plot!(p[idx], title=L"The global errors of $x$ with $h=%$c c$")
     plot!(p[idx], ylim=ylims, yticks=(10.0.^yticks, [L"%$x" for x in yticks]))
+    plot!(p[idx], epsilons, slope_2, label="slope 2", linestyle=:dash, color=:gray)
+    plot!(p[idx], epsilons, slope_1, label="slope 1", linestyle=:dash, color=:black)
 
     # Parallel velocity errors plot
     idx += 1
@@ -132,6 +139,8 @@ for (idx, c) in enumerate([1, 4, 16])
     plot!(p[idx], xlabel=L"$\log_{10}(\epsilon)$", ylabel=L"$\log_{10}($GE$)$")
     plot!(p[idx], title=L"The global errors of $v_{||}$ with $h=%$c c$")
     plot!(p[idx], ylim=ylims, yticks=(10.0.^yticks, [L"%$x" for x in yticks]))
+    plot!(p[idx], epsilons, slope_2, label="slope 2", linestyle=:dash, color=:gray)
+    plot!(p[idx], epsilons, slope_1, label="slope 1", linestyle=:dash, color=:black)
 
     # Perpendicular velocity errors plot
     idx += 1
@@ -142,12 +151,14 @@ for (idx, c) in enumerate([1, 4, 16])
     plot!(p[idx], epsilons, errors_SB[:, 3], label="Boris", marker=:star)
 
     plot!(p[idx], xlabel=L"$\log_{10}(\epsilon)$", ylabel=L"$\log_{10}($GE$)$")
-    plot!(p[idx], title=L"The global errors of $v_{\perp}$ with $h=%$c c$")
+    plot!(p[idx], title=L"$\text{The global errors of } v_{\perp} \text{ with } h = %$(c) \, c$")
     plot!(p[idx], ylim=ylims, yticks=(10.0.^yticks, [L"%$x" for x in yticks]))
+    plot!(p[idx], epsilons, slope_2, label="slope 2", linestyle=:dash, color=:gray)
+    plot!(p[idx], epsilons, slope_1, label="slope 1", linestyle=:dash, color=:black)
 
 end
 
-plot!(p, left_margin=5mm, bottom_margin=5mm, legend=:bottomright, linestyle=:dash)
+plot!(p, right_margin= 5mm, left_margin=5mm, top_margin=5mm, bottom_margin=5mm, legend=:bottomright)
 plot!(p, xlim=(10e-5, 10e-2), xticks=(10.0.^(-1:-0.5:-4), [L"%$x" for x in -1:-0.5:-4]))
 # Save the combined plot as a single image
-savefig("errors_x_h_epsilon_combined.png")
+savefig("errors_x_h_epsilon_combined.pdf")

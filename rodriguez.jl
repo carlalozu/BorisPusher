@@ -12,7 +12,7 @@ end
 
 
 function Phi_2(B, h)
-    # Gamma operator in Rodriguez-like formula
+    # Phi_2 operator in Rodriguez-like formula
     b = norm(B)
     return I + (1 - (h * b / 2)^2 / sin(h * b / 2)^2) / (b * b) * hat(B)^2
 end
@@ -24,7 +24,7 @@ function Gamma(B, h)
 end
 
 function phi_1(B, h)
-    # Gamma operator in Rodriguez-like formula
+    # phi_1 operator in Rodriguez-like formula
     b = norm(B)
     return I + (1 - cos(h * b)) / (h * b * b) * hat(B) + (1 - sin(h * b) / (h * b)) / (b * b) * hat(B)^2
 end
