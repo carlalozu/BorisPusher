@@ -18,13 +18,13 @@ function boris2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     x = x_0
 
     # Initial half-step for velocity
-    v_ = v - (cross(v, B(x, epsilon)) + E(x))*h/2
+    v_ = v - (cross(v, B(x, epsilon)) + E(x)) * h / 2
     for i in 1:nt
         # Store the position and velocity
         x_t[i, :] = x # x^n
         v_t[i, :] = v # v^n
 
-        E_n =  E(x)
+        E_n = E(x)
         B_n = B(x, epsilon)
 
         # Half step of velocity due to electric field
@@ -43,8 +43,8 @@ function boris2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
         # Full step of the position
         x = x .+ h * v_
 
-        # TODO: Recover velocity from half step velocity
-        v = v_
+        # Recover velocity from half step velocity
+        v = inv(I + h / 2 * hat(B(x, epsilon))) * (v_ + E(x) * h / 2)
 
     end
     return x_t, v_t
