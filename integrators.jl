@@ -171,8 +171,8 @@ function boris_twoPA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float6
     B_c = B(x_c, epsilon)
 
     # Initial half-step for velocity
-    Phi_pm_n = Phi_pm(h*B_n, h*B_c, -1)  # Compute Φⁿ₊ or Φⁿ₋ based on the sign
-    Psi_pm_n = Psi_pm(h*B_n, h*B_c, -1)  # Compute Ψⁿ₊ or Ψⁿ₋ based on the sign
+    Phi_pm_n = Phi_pm(B_n, B_c, h, -1)  # Compute Φⁿ₊ or Φⁿ₋ based on the sign
+    Psi_pm_n = Psi_pm(B_n, B_c, h, -1)  # Compute Ψⁿ₊ or Ψⁿ₋ based on the sign
     v = Phi_pm_n * v - h / 2 * Psi_pm_n * E_n
     for i in 1:nt
         # Store the position and velocity

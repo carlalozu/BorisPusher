@@ -2,7 +2,7 @@ using LinearAlgebra
 using NLsolve
 
 include("utils.jl")
-include("matrix_funcs.jl")
+include("rodriguez.jl")
 
 function boris2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     """Standard Boris integrator"""
@@ -177,7 +177,7 @@ function boris_twoPA2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Floa
         B_c = B(x_c, epsilon)
 
         # Full step of the position x^{n+1}
-        x_ = x + h * Phi_pm(h * B_n, h * B_c, +1) * v + h^2 / 2 * Psi_pm(h * B_n, h * B_c, +1) * E_n
+        x_ = x + h * Phi_pm(B_n, B_c, h, +1) * v + h^2 / 2 * Psi_pm(B_n, B_c, h, +1) * E_n
 
         function equation_twop(v_)
 
@@ -185,11 +185,11 @@ function boris_twoPA2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Floa
             x_c_ = x_center(x_, v_, B_n_)
             B_c_ = B(x_c_, epsilon)
 
-            lhs = Phi_pm(h * B_n_, h * B_c_, -1) * v_
+            lhs = Phi_pm(B_n_, B_c_, h, -1) * v_
 
-            term_1 = Phi_pm(h * B_n, h * B_c, +1) * v
-            term_2 = h / 2 * Psi_pm(h * B_n_, h * B_c_, -1) * E(x_)
-            term_3 = h / 2 * Psi_pm(h * B_n, h * B_c, +1) * E_n
+            term_1 = Phi_pm(B_n, B_c, h, +1) * v
+            term_2 = h / 2 * Psi_pm(B_n_, B_c_, h, -1) * E(x_)
+            term_3 = h / 2 * Psi_pm(B_n, B_c, h, +1) * E_n
 
             rhs = term_1 + term_2 + term_3
 
