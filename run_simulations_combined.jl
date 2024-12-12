@@ -25,14 +25,6 @@ v_0 = [2 / 5, 2 / 3, 1.0];
 t0 = 0.0;
 tf = 1.0;
 
-# Define a 3x3 grid layout
-plot_layout = @layout [a b c;
-    d e f;
-    g h i]
-
-# Create a plot with the defined layout
-p = plot(layout=plot_layout, size=(1400, 1000), link=:x, legend=:bottomright)
-
 ji, jf = (4, 13)
 for (idx, c) in enumerate([1, 4, 16])
     # Arrays to store the errors
@@ -53,7 +45,7 @@ for (idx, c) in enumerate([1, 4, 16])
 
         h = c * epsilon
         nt = Int((tf - t0) / h + 1)
-        println("j = ", j, ", nt = ", nt)
+        println("j = ", j, ", nt = ", nt, ", h = ", h)
 
         # Runge Kutta (ground truth)
         x_tRK, v_tRK = runge_kutta(x_0, v_0, (t0, tf), nt, epsilon)
@@ -71,13 +63,11 @@ for (idx, c) in enumerate([1, 4, 16])
         v_tBEA_pe = v_tBEA[nt, :] - v_tBEA_pa
 
         # Implicit Filtered Boris
-        # x_tBIA, _ = boris_impA(x_0, v_0, (t0, tf), nt, epsilon);
         x_tBIA, v_tBIA = boris_impA2(x_0, v_0, (t0, tf), nt, epsilon)
         v_tBIA_pa = parallel_velocity(x_tBIA[nt, :], v_tBIA[nt, :], epsilon)
         v_tBIA_pe = v_tBIA[nt, :] - v_tBIA_pa
 
         # Two point filtered Boris
-        # x_tBT, _ = boris_twoPA(x_0, v_0, (t0, tf), nt, epsilon);
         x_tBT, v_tBT = boris_twoPA2(x_0, v_0, (t0, tf), nt, epsilon)
         v_tBT_pa = parallel_velocity(x_tBT[nt, :], v_tBT[nt, :], epsilon)
         v_tBT_pe = v_tBT[nt, :] - v_tBT_pa
@@ -103,7 +93,15 @@ for (idx, c) in enumerate([1, 4, 16])
         i += 1
     end
 
-    # Position errors plot
+    # Define a 3x3 grid layout
+    plot_layout = @layout [a b c;
+    d e f;
+    g h i]
+    
+    # Create a plot with the defined layout
+    p = plot(layout=plot_layout, size=(1400, 1000), link=:x, legend=:bottomright, xscale=:log10, yscale=:log10)
+    
+    # Plot limits and ticks
     ylims = (10e-12, 10e0)
     yticks = 0:-2:-10
     if c > 1
@@ -116,11 +114,10 @@ for (idx, c) in enumerate([1, 4, 16])
     slope_2 = epsilons.^2
 
     idx += 1
-    plot!(p[idx], xscale=:log10, yscale=:log10)
-    plot!(p[idx], epsilons, errors_BEA[:, 1], label="Exp-A", marker=:square)
-    plot!(p[idx], epsilons, errors_BIA[:, 1], label="Imp-A", marker=:circle)
-    plot!(p[idx], epsilons, errors_BT[:, 1], label="Two P-A", marker=:circle)
-    plot!(p[idx], epsilons, errors_SB[:, 1], label="Boris", marker=:star)
+    plot!(p[idx], epsilons, errors_BEA[:, 1], label="Exp-A", marker=:square, markerstrokewidth=0)
+    plot!(p[idx], epsilons, errors_BIA[:, 1], label="Imp-A", marker=:circle, markerstrokewidth=0)
+    plot!(p[idx], epsilons, errors_BT[:, 1], label="Two P-A", marker=:circle, markerstrokewidth=0)
+    plot!(p[idx], epsilons, errors_SB[:, 1], label="Boris", marker=:star, markerstrokewidth=0)
 
     plot!(p[idx], xlabel=L"$\log_{10}(\epsilon)$", ylabel=L"$\log_{10}($GE$)$")
     plot!(p[idx], title=L"The global errors of $x$ with $h=%$c c$")
@@ -130,11 +127,10 @@ for (idx, c) in enumerate([1, 4, 16])
 
     # Parallel velocity errors plot
     idx += 1
-    plot!(p[idx], xscale=:log10, yscale=:log10)
-    plot!(p[idx], epsilons, errors_BEA[:, 2], label="Exp-A", marker=:square)
-    plot!(p[idx], epsilons, errors_BIA[:, 2], label="Imp-A", marker=:circle)
-    plot!(p[idx], epsilons, errors_BT[:, 2], label="Two P-A", marker=:circle)
-    plot!(p[idx], epsilons, errors_SB[:, 2], label="Boris", marker=:star)
+    plot!(p[idx], epsilons, errors_BEA[:, 2], label="Exp-A", marker=:square, markerstrokewidth=0)
+    plot!(p[idx], epsilons, errors_BIA[:, 2], label="Imp-A", marker=:circle, markerstrokewidth=0)
+    plot!(p[idx], epsilons, errors_BT[:, 2], label="Two P-A", marker=:circle, markerstrokewidth=0)
+    plot!(p[idx], epsilons, errors_SB[:, 2], label="Boris", marker=:star, markerstrokewidth=0)
 
     plot!(p[idx], xlabel=L"$\log_{10}(\epsilon)$", ylabel=L"$\log_{10}($GE$)$")
     plot!(p[idx], title=L"The global errors of $v_{||}$ with $h=%$c c$")
@@ -144,14 +140,13 @@ for (idx, c) in enumerate([1, 4, 16])
 
     # Perpendicular velocity errors plot
     idx += 1
-    plot!(p[idx], xscale=:log10, yscale=:log10)
-    plot!(p[idx], epsilons, errors_BEA[:, 3], label="Exp-A", marker=:square)
-    plot!(p[idx], epsilons, errors_BIA[:, 3], label="Imp-A", marker=:circle)
-    plot!(p[idx], epsilons, errors_BT[:, 3], label="Two P-A", marker=:circle)
-    plot!(p[idx], epsilons, errors_SB[:, 3], label="Boris", marker=:star)
+    plot!(p[idx], epsilons, errors_BEA[:, 3], label="Exp-A", marker=:square, markerstrokewidth=0)
+    plot!(p[idx], epsilons, errors_BIA[:, 3], label="Imp-A", marker=:circle, markerstrokewidth=0)
+    plot!(p[idx], epsilons, errors_BT[:, 3], label="Two P-A", marker=:circle, markerstrokewidth=0)
+    plot!(p[idx], epsilons, errors_SB[:, 3], label="Boris", marker=:star, markerstrokewidth=0)
 
     plot!(p[idx], xlabel=L"$\log_{10}(\epsilon)$", ylabel=L"$\log_{10}($GE$)$")
-    plot!(p[idx], title=L"$\text{The global errors of } v_{\perp} \text{ with } h = %$(c) \, c$")
+    plot!(p[idx], title=L"The global errors of $v_{\perp}$ with $h=%$c c$")
     plot!(p[idx], ylim=ylims, yticks=(10.0.^yticks, [L"%$x" for x in yticks]))
     plot!(p[idx], epsilons, slope_2, label="slope 2", linestyle=:dash, color=:gray)
     plot!(p[idx], epsilons, slope_1, label="slope 1", linestyle=:dash, color=:black)
