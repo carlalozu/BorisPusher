@@ -1,6 +1,6 @@
-using LinearAlgebra
+"""Extra problem specific functions"""
+
 using DifferentialEquations
-include("../src/utils.jl")
 
 function B(x, epsilon)
     """Magnetic field"""
@@ -8,16 +8,15 @@ function B(x, epsilon)
 end
 
 function E(x)
-    """Mlectric field"""
+    """Electric field"""
     return [x[1], x[2], 0] / (x[1] .^ 2 + x[2] .^ 2)^(3 / 2)
 end
 
 function system!(du, u, p, t)
-    # System of equations
+    """System of equations corresponding to the problem's electric and magnetic field"""
     x1, x1_prime, x2, x2_prime, x3, x3_prime = u
     epsilon = p[1]
 
-    # Equations
     du[1] = x1_prime            # x1' = x1_prime
     du[2] = x1 / (x1^2 + x2^2)^(3 / 2) + x2_prime / epsilon + x2_prime * x3 # x1''
     du[3] = x2_prime            # x2' = x2_prime
@@ -35,7 +34,7 @@ function runge_kutta(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float6
     # Initial conditions
     u0 = [x_0[1], v_0[1], x_0[2], v_0[2], x_0[3], v_0[3]]
 
-    # Solving the system using a Runge-Kutta method
+    # Solving the system using a Julia equivalent of ODE45 in Matlab
     prob = ODEProblem(system!, u0, (t0, tf), [epsilon])
     sol = solve(prob, Tsit5(),
         abstol=1e-12,
