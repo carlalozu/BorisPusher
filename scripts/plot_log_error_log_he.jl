@@ -1,7 +1,7 @@
 # To run script open julia terminal and run the following commands:
 # import Pkg
-# Pkg.activate("BorisPusher/Boris")
-# include("BorisPusher/plot_global_errors.jl")
+# Pkg.activate("Boris")
+# include("scripts/plot_global_errors.jl")
 
 using Plots
 using DifferentialEquations
@@ -10,11 +10,10 @@ using NLsolve
 using LaTeXStrings
 using Measures
 
-include("matrix_funcs.jl")
 include("extras.jl")
-include("utils.jl")
-include("integrators.jl")
-include("int_one_step_map.jl")
+include("../src/matrix_funcs.jl")
+include("../src/utils.jl")
+include("../src/integrators_one_step_map.jl")
 
 # Initial position
 x_0 = [1 / 3, 1 / 4, 1 / 2];
@@ -25,39 +24,26 @@ v_0 = [2 / 5, 2 / 3, 1.0];
 t0 = 0.0;
 tf = 1.0;
 
-nt_start = 75
-nt_end = 1000
-
-# Generate the incremental step pattern
-steps = Int[]
-current_step = 1.1
-while sum(steps) < (nt_end - nt_start)
-    global current_step
-    append!(steps, floor(current_step))
-    current_step = current_step^(1.015)
-end
-
-# Generate nt values based on the step pattern
-nt_values = [nt_start]
-for step in steps
-    push!(nt_values, nt_values[end] + step)
-end
-
+# k or number of timesteps
+k_start = 60
+k_end = 600
+k_values = range(k_start, k_end)
 
 # Arrays to store the errors
-errors_SB = Array{Float64}(undef, length(nt_values), 3)
-errors_BEA = Array{Float64}(undef, length(nt_values), 3)
-errors_BIA = Array{Float64}(undef, length(nt_values), 3)
-errors_BT = Array{Float64}(undef, length(nt_values), 3)
+errors_SB = Array{Float64}(undef, length(k_values), 3)
+errors_BEA = Array{Float64}(undef, length(k_values), 3)
+errors_BIA = Array{Float64}(undef, length(k_values), 3)
+errors_BT = Array{Float64}(undef, length(k_values), 3)
 
 h_epsilons = []
 i = 1
-for nt in nt_values
+for k in k_values
     global i
 
     epsilon = (1 / 2)^10
     
-    h = (tf - t0) / (nt - 1)
+    nt = k + 1
+    h = (tf - t0) / k
     push!(h_epsilons, h / epsilon)
 
     println("i = ", i, ", nt = ", nt, ", h/eps = ", h/epsilon)
@@ -117,8 +103,8 @@ plot_layout = @layout [
 ]
 
 # Create a plot with the defined layout
-p = plot(layout=plot_layout, size=(1400, 1600))
-plot!(p, yscale=:log10, legend=false)
+p = plot(layout=plot_layout, size=(1400, 1600), margin = 5Plots.mm)
+plot!(p, yscale=:log10, legend=:bottomright)
 plot!(p, xlabel=L"$h/\epsilon$", ylabel=L"$\log_{10}(GE)$")
 plot!(ylims = (10e-9, 10e0), yticks=(10.0.^(0:-2:-6), [L"%$x" for x in 0:-2:-8]))
 plot!(xlims = (2, 14), xticks=(pi*(1:1:4), [L"%$x \pi" for x in 1:1:4]))
@@ -126,50 +112,50 @@ plot!(guidefontsize=16, tickfontsize=14)
 
 # Standard Boris
 idx = 1
-plot!(p[idx], h_epsilons, errors_SB[:, 1], linewidth=3, color=:dodgerblue)
-plot!(p[idx], title=L"The global errors of $x$ for Boris")
+plot!(p[idx], h_epsilons, errors_SB[:, 1], linewidth=3, color=:dodgerblue, label="Boris")
+plot!(p[idx], title=L"$x$")
 idx += 1
-plot!(p[idx], h_epsilons, errors_SB[:, 2], linewidth=3, color=:dodgerblue)
-plot!(p[idx], title=L"The global errors of $v_{||}$ for Boris")
+plot!(p[idx], h_epsilons, errors_SB[:, 2], linewidth=3, color=:dodgerblue, label="Boris")
+plot!(p[idx], title=L"$v_{||}$")
 idx += 1
-plot!(p[idx], h_epsilons, errors_SB[:, 3], linewidth=3, color=:dodgerblue)
-plot!(p[idx], title=L"The global errors of $v_{\perp}$ for Boris")
+plot!(p[idx], h_epsilons, errors_SB[:, 3], linewidth=3, color=:dodgerblue, label="Boris")
+plot!(p[idx], title=L"$v_{\perp}$")
 
 # Explicit Filtered Boris
 idx += 1
-plot!(p[idx], h_epsilons, errors_BEA[:, 1], linewidth=3, color=:dodgerblue)
-plot!(p[idx], title=L"The global errors of $x$ for Exp-A")
+plot!(p[idx], h_epsilons, errors_BEA[:, 1], linewidth=3, color=:dodgerblue, label="Exp-A")
+plot!(p[idx], title=L"$x$")
 idx += 1
-plot!(p[idx], h_epsilons, errors_BEA[:, 2], linewidth=3, color=:dodgerblue)
-plot!(p[idx], title=L"The global errors of $v_{||}$ for Exp-A")
+plot!(p[idx], h_epsilons, errors_BEA[:, 2], linewidth=3, color=:dodgerblue, label="Exp-A")
+plot!(p[idx], title=L"$v_{||}$")
 idx += 1
-plot!(p[idx], h_epsilons, errors_BEA[:, 3], linewidth=3, color=:dodgerblue)
-plot!(p[idx], title=L"The global errors of $v_{\perp}$ for Exp-A")
+plot!(p[idx], h_epsilons, errors_BEA[:, 3], linewidth=3, color=:dodgerblue, label="Exp-A")
+plot!(p[idx], title=L"$v_{\perp}$")
 
 # Implicit Filtered Boris
 idx += 1
-plot!(p[idx], h_epsilons, errors_BIA[:, 1], linewidth=3, color=:dodgerblue)
-plot!(p[idx], title=L"The global errors of $x$ for Imp-A")
+plot!(p[idx], h_epsilons, errors_BIA[:, 1], linewidth=3, color=:dodgerblue, label="Imp-A")
+plot!(p[idx], title=L"$x$")
 idx += 1
-plot!(p[idx], h_epsilons, errors_BIA[:, 2], linewidth=3, color=:dodgerblue)
-plot!(p[idx], title=L"The global errors of $v_{||}$ for Imp-A")
+plot!(p[idx], h_epsilons, errors_BIA[:, 2], linewidth=3, color=:dodgerblue, label="Imp-A")
+plot!(p[idx], title=L"$v_{||}$")
 idx += 1
-plot!(p[idx], h_epsilons, errors_BIA[:, 3], linewidth=3, color=:dodgerblue)
-plot!(p[idx], title=L"The global errors of $v_{\perp}$ for Imp-A")
+plot!(p[idx], h_epsilons, errors_BIA[:, 3], linewidth=3, color=:dodgerblue, label="Imp-A")
+plot!(p[idx], title=L"$v_{\perp}$")
 
 # Two point filtered Boris
 idx += 1
-plot!(p[idx], h_epsilons, errors_BT[:, 1], linewidth=3, color=:dodgerblue)
-plot!(p[idx], title=L"The global errors of $x$ for Two P-A")
+plot!(p[idx], h_epsilons, errors_BT[:, 1], linewidth=3, color=:dodgerblue, label="Two P-A")
+plot!(p[idx], title=L"$x$")
 idx += 1
-plot!(p[idx], h_epsilons, errors_BT[:, 2], linewidth=3, color=:dodgerblue)
-plot!(p[idx], title=L"The global errors of $v_{||}$ for Two P-A")
+plot!(p[idx], h_epsilons, errors_BT[:, 2], linewidth=3, color=:dodgerblue, label="Two P-A")
+plot!(p[idx], title=L"$v_{||}$")
 idx += 1
-plot!(p[idx], h_epsilons, errors_BT[:, 3], linewidth=3, color=:dodgerblue)
-plot!(p[idx], title=L"The global errors of $v_{\perp}$ for Two P-A")
+plot!(p[idx], h_epsilons, errors_BT[:, 3], linewidth=3, color=:dodgerblue, label="Two P-A")
+plot!(p[idx], title=L"$v_{\perp}$")
 
 
 plot!(p, right_margin=5mm, left_margin=5mm, top_margin=5mm, bottom_margin=5mm)
 
 # Save the combined plot as a single image
-savefig("errors_2.pdf")
+savefig("figures/log_error_log_he.pdf")

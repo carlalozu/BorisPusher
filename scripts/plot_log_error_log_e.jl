@@ -1,7 +1,7 @@
 # To run script open julia terminal and run the following commands:
 # import Pkg
-# Pkg.activate("BorisPusher/Boris")
-# include("BorisPusher/run_simulations_combined.jl")
+# Pkg.activate("Boris")
+# include("scripts/plot_log_error_log_e.jl")
 
 using Plots
 using DifferentialEquations
@@ -10,11 +10,10 @@ using NLsolve
 using LaTeXStrings
 using Measures
 
-include("matrix_funcs.jl")
 include("extras.jl")
-include("utils.jl")
-include("integrators.jl")
-include("int_one_step_map.jl")
+include("../src/matrix_funcs.jl")
+include("../src/utils.jl")
+include("../src/integrators_one_step_map.jl")
 
 # Initial position
 x_0 = [1 / 3, 1 / 4, 1 / 2];
@@ -24,6 +23,18 @@ v_0 = [2 / 5, 2 / 3, 1.0];
 # Numerical parameters, time
 t0 = 0.0;
 tf = 1.0;
+
+# Define a 3x3 grid layout
+plot_layout = @layout [a b c;
+d e f;
+g h i]
+
+# Create a plot with the defined layout
+p = plot(layout=plot_layout, size=(1600, 1400), link=:x, legend=:bottomright, margin = 5mm)
+plot!(p, xscale=:log10, yscale=:log10)
+plot!(p, guidefontsize=16, tickfontsize=14)
+plot!(p, xlabel=L"$\log_{10}(\epsilon)$", ylabel=L"$\log_{10}(GE)$")
+plot!(p, xlim=(10e-5, 10e-2), xticks=(10.0.^(-1:-0.5:-4), [L"%$x" for x in -1:-0.5:-4]))
 
 ji, jf = (4, 13)
 for (idx, c) in enumerate([1, 4, 16])
@@ -93,14 +104,6 @@ for (idx, c) in enumerate([1, 4, 16])
         i += 1
     end
 
-    # Define a 3x3 grid layout
-    plot_layout = @layout [a b c;
-    d e f;
-    g h i]
-    
-    # Create a plot with the defined layout
-    p = plot(layout=plot_layout, size=(1400, 1000), link=:x, legend=:bottomright, xscale=:log10, yscale=:log10)
-    
     # Plot limits and ticks
     ylims = (10e-12, 10e0)
     yticks = 0:-2:-10
@@ -114,46 +117,41 @@ for (idx, c) in enumerate([1, 4, 16])
     slope_2 = epsilons.^2
 
     idx += 1
-    plot!(p[idx], epsilons, errors_BEA[:, 1], label="Exp-A", marker=:square, markerstrokewidth=0)
-    plot!(p[idx], epsilons, errors_BIA[:, 1], label="Imp-A", marker=:circle, markerstrokewidth=0)
-    plot!(p[idx], epsilons, errors_BT[:, 1], label="Two P-A", marker=:circle, markerstrokewidth=0)
-    plot!(p[idx], epsilons, errors_SB[:, 1], label="Boris", marker=:star, markerstrokewidth=0)
+    plot!(p[idx], epsilons, errors_BEA[:, 1], label="Exp-A", marker=:square, markerstrokewidth=0, linewidth=3)
+    plot!(p[idx], epsilons, errors_BIA[:, 1], label="Imp-A", marker=:circle, markerstrokewidth=0, linewidth=3)
+    plot!(p[idx], epsilons, errors_BT[:, 1], label="Two P-A", marker=:circle, markerstrokewidth=0, linewidth=3)
+    plot!(p[idx], epsilons, errors_SB[:, 1], label="Boris", marker=:star, markerstrokewidth=0, linewidth=3)
 
-    plot!(p[idx], xlabel=L"$\log_{10}(\epsilon)$", ylabel=L"$\log_{10}($GE$)$")
-    plot!(p[idx], title=L"The global errors of $x$ with $h=%$c c$")
+    plot!(p[idx], title=L"$x$")
     plot!(p[idx], ylim=ylims, yticks=(10.0.^yticks, [L"%$x" for x in yticks]))
     plot!(p[idx], epsilons, slope_2, label="slope 2", linestyle=:dash, color=:gray)
     plot!(p[idx], epsilons, slope_1, label="slope 1", linestyle=:dash, color=:black)
 
     # Parallel velocity errors plot
     idx += 1
-    plot!(p[idx], epsilons, errors_BEA[:, 2], label="Exp-A", marker=:square, markerstrokewidth=0)
-    plot!(p[idx], epsilons, errors_BIA[:, 2], label="Imp-A", marker=:circle, markerstrokewidth=0)
-    plot!(p[idx], epsilons, errors_BT[:, 2], label="Two P-A", marker=:circle, markerstrokewidth=0)
-    plot!(p[idx], epsilons, errors_SB[:, 2], label="Boris", marker=:star, markerstrokewidth=0)
+    plot!(p[idx], epsilons, errors_BEA[:, 2], label="Exp-A", marker=:square, markerstrokewidth=0, linewidth=3)
+    plot!(p[idx], epsilons, errors_BIA[:, 2], label="Imp-A", marker=:circle, markerstrokewidth=0, linewidth=3)
+    plot!(p[idx], epsilons, errors_BT[:, 2], label="Two P-A", marker=:circle, markerstrokewidth=0, linewidth=3)
+    plot!(p[idx], epsilons, errors_SB[:, 2], label="Boris", marker=:star, markerstrokewidth=0, linewidth=3)
 
-    plot!(p[idx], xlabel=L"$\log_{10}(\epsilon)$", ylabel=L"$\log_{10}($GE$)$")
-    plot!(p[idx], title=L"The global errors of $v_{||}$ with $h=%$c c$")
+    plot!(p[idx], title=L"$v_{||}$")
     plot!(p[idx], ylim=ylims, yticks=(10.0.^yticks, [L"%$x" for x in yticks]))
     plot!(p[idx], epsilons, slope_2, label="slope 2", linestyle=:dash, color=:gray)
     plot!(p[idx], epsilons, slope_1, label="slope 1", linestyle=:dash, color=:black)
 
     # Perpendicular velocity errors plot
     idx += 1
-    plot!(p[idx], epsilons, errors_BEA[:, 3], label="Exp-A", marker=:square, markerstrokewidth=0)
-    plot!(p[idx], epsilons, errors_BIA[:, 3], label="Imp-A", marker=:circle, markerstrokewidth=0)
-    plot!(p[idx], epsilons, errors_BT[:, 3], label="Two P-A", marker=:circle, markerstrokewidth=0)
-    plot!(p[idx], epsilons, errors_SB[:, 3], label="Boris", marker=:star, markerstrokewidth=0)
+    plot!(p[idx], epsilons, errors_BEA[:, 3], label="Exp-A", marker=:square, markerstrokewidth=0, linewidth=3)
+    plot!(p[idx], epsilons, errors_BIA[:, 3], label="Imp-A", marker=:circle, markerstrokewidth=0, linewidth=3)
+    plot!(p[idx], epsilons, errors_BT[:, 3], label="Two P-A", marker=:circle, markerstrokewidth=0, linewidth=3)
+    plot!(p[idx], epsilons, errors_SB[:, 3], label="Boris", marker=:star, markerstrokewidth=0, linewidth=3)
 
-    plot!(p[idx], xlabel=L"$\log_{10}(\epsilon)$", ylabel=L"$\log_{10}($GE$)$")
-    plot!(p[idx], title=L"The global errors of $v_{\perp}$ with $h=%$c c$")
+    plot!(p[idx], title=L"$v_{\perp}$")
     plot!(p[idx], ylim=ylims, yticks=(10.0.^yticks, [L"%$x" for x in yticks]))
     plot!(p[idx], epsilons, slope_2, label="slope 2", linestyle=:dash, color=:gray)
     plot!(p[idx], epsilons, slope_1, label="slope 1", linestyle=:dash, color=:black)
 
 end
 
-plot!(p, right_margin= 5mm, left_margin=5mm, top_margin=5mm, bottom_margin=5mm, legend=:bottomright)
-plot!(p, xlim=(10e-5, 10e-2), xticks=(10.0.^(-1:-0.5:-4), [L"%$x" for x in -1:-0.5:-4]))
 # Save the combined plot as a single image
-savefig("errors_x_h_epsilon_combined.pdf")
+savefig("figures/log_error_log_e.pdf")
