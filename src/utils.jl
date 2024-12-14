@@ -26,7 +26,7 @@ function theta(x::Float64)
     return ((x / 2.0) / sin(x / 2.0))^2
 end
 
-function parallel_velocity(x::Vector, v::Vector, B::Vector)
+function parallel_velocity(x::Vector, v::Vector, B::Function)
     """Compute parallel velocity from position and velocity through magnetic field"""
     B_n_ = B(x)
     b_n_ = norm(B_n_)
