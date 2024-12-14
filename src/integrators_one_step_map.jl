@@ -1,7 +1,7 @@
 using LinearAlgebra
 using NLsolve
 
-function boris2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
+function boris2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, B::Function, E::Function)
     """Standard Boris integrator"""
     # Parameters
     (t0, tf) = t
@@ -15,14 +15,14 @@ function boris2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     x = x_0
 
     # Initial half-step for velocity
-    v_ = v - (cross(v, B(x, epsilon)) + E(x)) * h / 2
+    v_ = v - (cross(v, B(x)) + E(x)) * h / 2
     for n in 1:nt
         # Store the position and velocity at full time step
         x_t[n, :] = x # x^n
         v_t[n, :] = v # v^n
 
         E_n = E(x)
-        B_n = B(x, epsilon)
+        B_n = B(x)
 
         # Half step of velocity due to electric field
         v_minus = v_ .+ h / 2 * E_n
@@ -41,13 +41,13 @@ function boris2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
         x = x .+ h * v_
 
         # Recover velocity from half step velocity
-        v = inv(I + h / 2 * hat(B(x, epsilon))) * (v_ + E(x) * h / 2)
+        v = inv(I + h / 2 * hat(B(x))) * (v_ + E(x) * h / 2)
 
     end
     return x_t, v_t
 end
 
-function boris_expA2(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64,Float64}, nt::Int64, epsilon::Float64)
+function boris_expA2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int64, B::Function, E::Function)
     """Explicit filtered Boris integrator one-step map"""
     # Parameters
     (t0, tf) = t
@@ -66,14 +66,14 @@ function boris_expA2(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float6
         v_t[n, :] = v # v^n
 
         E_n = E(x)
-        B_n = B(x, epsilon)
+        B_n = B(x)
 
         # Full step of the position x^{n+1}
         x_ = x + h * Phi_pm_(B_n, h, +1) * v + h^2 / 2 * Psi_pm_(B_n, B_n, h, +1) * E_n
 
         function equation_imp(v_)
             # At x+1 position
-            B_n_ = B(x_, epsilon)
+            B_n_ = B(x_)
 
             lhs = Phi_pm_(B_n_, h, -1) * v_
 
@@ -92,7 +92,7 @@ function boris_expA2(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float6
     return x_t, v_t
 end
 
-function boris_impA2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
+function boris_impA2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, B::Function, E::Function)
     """Implicit filtered Boris integrator"""
     # Parameters
     (t0, tf) = t
@@ -111,23 +111,23 @@ function boris_impA2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float
         v_t[n, :] = v # v^n
 
         E_n = E(x)
-        B_n = B(x, epsilon)
+        B_n = B(x)
 
         x_c = x_center(x, v, B_n)
         theta_n = theta(h * norm(B_n))
         x_bar_n = x_bar(theta_n, x, x_c)
-        B_bar_n = B(x_bar_n, epsilon)
+        B_bar_n = B(x_bar_n)
 
         # Full step of the position x^{n+1}
         x_ = x + h * Phi_pm_(B_bar_n, h, +1) * v + h^2 / 2 * Psi_pm_(B_n, B_bar_n, h, +1) * E_n
 
-        function equation_imp(v_)
+        function equation_imp(v_::Vector)
             # At n+1 timestep
-            B_n_ = B(x_, epsilon)
+            B_n_ = B(x_)
             x_c_ = x_center(x_, v_, B_n_)
             theta_n_ = theta(h * norm(B_n_))
             x_bar_n_ = x_bar(theta_n_, x_, x_c_)
-            B_bar_n_ = B(x_bar_n_, epsilon)
+            B_bar_n_ = B(x_bar_n_)
 
             lhs = Phi_pm_(B_bar_n_, h, -1) * v_
 
@@ -147,7 +147,7 @@ function boris_impA2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float
     return x_t, v_t
 end
 
-function boris_twoPA2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
+function boris_twoPA2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, B::Function, E::Function)
     """Implicit filtered Boris integrator"""
     # Parameters
     (t0, tf) = t
@@ -166,19 +166,19 @@ function boris_twoPA2(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Floa
         v_t[n, :] = v # v^n
 
         E_n = E(x)
-        B_n = B(x, epsilon)
+        B_n = B(x)
 
         x_c = x_center(x, v, B_n)
-        B_c = B(x_c, epsilon)
+        B_c = B(x_c)
 
         # Full step of the position x^{n+1}
         x = x + h * Phi_pm(B_n, B_c, h, +1) * v + h^2 / 2 * Psi_pm(B_n, B_c, h, +1) * E_n
 
-        function equation_twop(v_)
+        function equation_twop(v_::Vector)
 
-            B_n_ = B(x, epsilon)
+            B_n_ = B(x)
             x_c_ = x_center(x, v_, B_n_)
-            B_c_ = B(x_c_, epsilon)
+            B_c_ = B(x_c_)
 
             lhs = Phi_pm(B_n_, B_c_, h, -1) * v_
 

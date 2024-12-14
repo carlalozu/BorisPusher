@@ -1,7 +1,7 @@
 # To run script open julia terminal and run the following commands:
 # import Pkg
 # Pkg.activate("Boris")
-# include("scripts/plot_global_errors.jl")
+# include("scripts/plot_log_error_log_he.jl")
 
 using Plots
 using LaTeXStrings
@@ -45,29 +45,31 @@ for k in k_values
 
     println("i = ", i, ", nt = ", nt, ", h/eps = ", h/epsilon)
 
+    B_ = x -> B(x, epsilon)
+
     # Runge Kutta (ground truth)
     x_tRK, v_tRK = runge_kutta(x_0, v_0, (t0, tf), nt, epsilon)
-    v_tRK_pa = parallel_velocity(x_tRK[nt, :], v_tRK[nt, :], epsilon)
+    v_tRK_pa = parallel_velocity(x_tRK[nt, :], v_tRK[nt, :], B_)
     v_tRK_pe = v_tRK[nt, :] - v_tRK_pa
 
     # Standard Boris
-    x_tSB, v_tSB = boris2(x_0, v_0, (t0, tf), nt, epsilon)
-    v_tSB_pa = parallel_velocity(x_tSB[nt, :], v_tSB[nt, :], epsilon)
+    x_tSB, v_tSB = boris2(x_0, v_0, (t0, tf), nt, B_, E)
+    v_tSB_pa = parallel_velocity(x_tSB[nt, :], v_tSB[nt, :], B_)
     v_tSB_pe = v_tSB[nt, :] - v_tSB_pa
 
     # Explicit Filtered Boris
-    x_tBEA, v_tBEA = boris_expA2(x_0, v_0, (t0, tf), nt, epsilon)
-    v_tBEA_pa = parallel_velocity(x_tBEA[nt, :], v_tBEA[nt, :], epsilon)
+    x_tBEA, v_tBEA = boris_expA2(x_0, v_0, (t0, tf), nt, B_, E)
+    v_tBEA_pa = parallel_velocity(x_tBEA[nt, :], v_tBEA[nt, :], B_)
     v_tBEA_pe = v_tBEA[nt, :] - v_tBEA_pa
 
     # Implicit Filtered Boris
-    x_tBIA, v_tBIA = boris_impA2(x_0, v_0, (t0, tf), nt, epsilon)
-    v_tBIA_pa = parallel_velocity(x_tBIA[nt, :], v_tBIA[nt, :], epsilon)
+    x_tBIA, v_tBIA = boris_impA2(x_0, v_0, (t0, tf), nt, B_, E)
+    v_tBIA_pa = parallel_velocity(x_tBIA[nt, :], v_tBIA[nt, :], B_)
     v_tBIA_pe = v_tBIA[nt, :] - v_tBIA_pa
 
     # Two point filtered Boris
-    x_tBT, v_tBT = boris_twoPA2(x_0, v_0, (t0, tf), nt, epsilon)
-    v_tBT_pa = parallel_velocity(x_tBT[nt, :], v_tBT[nt, :], epsilon)
+    x_tBT, v_tBT = boris_twoPA2(x_0, v_0, (t0, tf), nt, B_, E)
+    v_tBT_pa = parallel_velocity(x_tBT[nt, :], v_tBT[nt, :], B_)
     v_tBT_pe = v_tBT[nt, :] - v_tBT_pa
 
     # Global error in position

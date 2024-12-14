@@ -2,12 +2,12 @@
 
 using DifferentialEquations
 
-function B(x, epsilon)
+function B(x::Vector, epsilon::Float64)
     """Magnetic field"""
     return [-x[1], 0, x[3] + 1.0 / epsilon]
 end
 
-function E(x)
+function E(x::Vector)
     """Electric field"""
     return [x[1], x[2], 0] / (x[1] .^ 2 + x[2] .^ 2)^(3 / 2)
 end
@@ -25,7 +25,7 @@ function system!(du, u, p, t)
     du[6] = x2_prime * x1       # x3''
 end
 
-function runge_kutta(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64,Float64}, nt::Int64, epsilon::Float64)
+function runge_kutta(x_0::Vector, v_0::Vector, t::Tuple, nt::Int64, epsilon::Float64)
     """Runge-Kutta integrator"""
 
     # Parameters

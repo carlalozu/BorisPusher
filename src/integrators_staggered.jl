@@ -1,7 +1,7 @@
 using LinearAlgebra
 using NLsolve
 
-function boris(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
+function boris(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, B::Function, E::Function)
     """Standard Boris integrator"""
     # Parameters
     (t0, tf) = t
@@ -15,14 +15,14 @@ function boris(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     x = x_0
 
     # Initial half-step for velocity
-    v = v - (cross(v, B(x, epsilon)) + E(x)) * h / 2
+    v = v - (cross(v, B(x)) + E(x)) * h / 2
     for n in 1:nt
         # Store the position at full step and velocity at half step
         x_t[n, :] = x # x^{n}
         v_t[n, :] = v # v^{n-1/2}
 
         E_n = E(x)
-        B_n = B(x, epsilon)
+        B_n = B(x)
 
         # Half step of velocity due to electric field
         v_minus = v .+ h / 2 * E_n
@@ -43,7 +43,7 @@ function boris(x_0::Vector, v_0::Vector, t::Tuple, nt::Int, epsilon::Float64)
     return x_t, v_t
 end
 
-function boris_expA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64,Float64}, nt::Int64, epsilon::Float64)
+function boris_expA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int64, B::Function, E::Function)
     """Explicit filtered Boris integrator"""
     # Parameters
     (t0, tf) = t
@@ -58,7 +58,7 @@ function boris_expA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
 
     # Initial half-step for velocity
     E_n = E(x)
-    B_n = B(x, epsilon)
+    B_n = B(x)
 
     v = phi_1(B_n, h) * (v + h * Gamma(B_n, h) * E_n) - h / 2 * Psi(B_n, h) * E_n
     for n in 1:nt
@@ -67,7 +67,7 @@ function boris_expA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
         v_t[n, :] = v # v^{n-1/2}
 
         E_n = E(x)
-        B_n = B(x, epsilon)
+        B_n = B(x)
 
         v_plus = v + h / 2 * Psi(B_n, h) * E_n
 
@@ -83,7 +83,7 @@ function boris_expA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
     return x_t, v_t
 end
 
-function boris_impA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64,Float64}, nt::Int64, epsilon::Float64)
+function boris_impA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int64, B::Function, E::Function)
     """Implicit filtered Boris integrator"""
     # Parameters
     (t0, tf) = t
@@ -98,11 +98,11 @@ function boris_impA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
 
     # Initial half-step for velocity
     E_n = E(x)
-    B_n = B(x, epsilon)
+    B_n = B(x)
     x_c = x_center(x, v, B_n)
     theta_n = theta(h * norm(B_n))
     x_bar_n = x_bar(theta_n, x, x_c)
-    B_bar_n = B(x_bar_n, epsilon)
+    B_bar_n = B(x_bar_n)
 
     v = phi_1(B_bar_n, h) * (v + h * Gamma(B_n, h) * E_n) - h / 2 * Psi(B_n, h) * E_n
     for n in 1:nt
@@ -111,7 +111,7 @@ function boris_impA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
         v_t[n, :] = v # v^{n-1/2}
 
         E_n = E(x)
-        B_n = B(x, epsilon)
+        B_n = B(x)
 
         # v^{n-1/2}_{+}
         v_plus = v + h / 2 * Psi(B_n, h) * E_n
@@ -122,7 +122,7 @@ function boris_impA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
         function equation(v_n_)
             x_c = x_center(x, v_n_, B_n)
             x_bar_n = x_bar(theta_n, x, x_c)
-            B_bar_n = B(x_bar_n, epsilon)
+            B_bar_n = B(x_bar_n)
             # v^{n-1/2}_{-} = exp(-h*hat_B_bar_n)) * v^{n-1/2}_{+}
             v_minus = exp(-h * hat(B_bar_n)) * v_plus
 
@@ -138,7 +138,7 @@ function boris_impA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
         # v^{n+1/2}
         x_c = x_center(x, v_n, B_n)
         x_bar_n = x_bar(theta_n, x, x_c)
-        B_bar_n = B(x_bar_n, epsilon)
+        B_bar_n = B(x_bar_n)
         v_minus = exp(-h * hat(B_bar_n)) * v_plus
         v = v_minus + h / 2 * Psi(B_n, h) * E_n
 
@@ -150,7 +150,7 @@ function boris_impA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64
 end
 
 
-function boris_twoPA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float64,Float64}, nt::Int64, epsilon::Float64)
+function boris_twoPA(x_0::Vector, v_0::Vector, t::Tuple, nt::Int64, B::Function, E::Function)
     """Two-point filtered Boris integrator"""
     # Parameters
     (t0, tf) = t
@@ -163,11 +163,11 @@ function boris_twoPA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float6
     v = v_0
     x = x_0
 
-    B_n = B(x, epsilon)
+    B_n = B(x)
     E_n = E(x)
 
     x_c = x_center(x, v, B_n)
-    B_c = B(x_c, epsilon)
+    B_c = B(x_c)
 
     # Initial half-step for velocity
     Phi_pm_n = Phi_pm(B_n, B_c, h, -1)  # Compute Φⁿ₊ or Φⁿ₋ based on the sign
@@ -179,7 +179,7 @@ function boris_twoPA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float6
         x_t[n, :] = x # x^{n}
         v_t[n, :] = v # v^{n-1/2}
 
-        B_n = B(x, epsilon)
+        B_n = B(x)
         E_n = E(x)
 
         # v^{n-1/2}_{+}
@@ -192,7 +192,7 @@ function boris_twoPA(x_0::Vector{Float64}, v_0::Vector{Float64}, t::Tuple{Float6
             # Compute v_n by (2.7), with B_n instead of B_bar_n
             v_n = Phi_1(B_n, h) * 1 / 2 * (v_minus + v_plus) - h * Gamma(B_n, h) * E_n
             x_c = x_center(x, v_n, B_n)
-            B_c = B(x_c, epsilon)
+            B_c = B(x_c)
 
             # Express components of (7.1) in matrix form
             m_phi2 = Phi_2(B_c, h)
