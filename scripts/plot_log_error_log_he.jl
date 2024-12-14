@@ -4,14 +4,11 @@
 # include("scripts/plot_global_errors.jl")
 
 using Plots
-using DifferentialEquations
-using LinearAlgebra
-using NLsolve
 using LaTeXStrings
 using Measures
 
 include("extras.jl")
-include("../src/matrix_funcs.jl")
+include("../src/rodriguez.jl") # You can decide to use the rodriguez.jl file or matrix_funcs.jl
 include("../src/utils.jl")
 include("../src/integrators_one_step_map.jl")
 

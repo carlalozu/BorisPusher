@@ -1,5 +1,7 @@
 """Helper functions"""
 
+using LinearAlgebra
+
 function hat(X)
     """3x3 operator version of cross product with matrix X"""
     return [0 -X[3] X[2]; X[3] 0 -X[1]; -X[2] X[1] 0]
@@ -22,7 +24,7 @@ function theta(x)
 end
 
 function parallel_velocity(x, v, epsilon)
-    """Compute parallel velocity from position and velocity through Magnetic field"""
+    """Compute parallel velocity from position and velocity through magnetic field"""
     B_n_ = B(x, epsilon)
     b_n_ = norm(B_n_)
 
@@ -43,21 +45,21 @@ function Psi_pm_(B, B_bar, h, sign)
 end
 
 function Lambda(B, Bc, h)
-    """Compute Λⁿ, for two point algorithm"""
+    """Compute Λⁿ for two point algorithm"""
     Phi1 = Phi_1(B, h)
     Phi2 = Phi_2(Bc, h)
     return inv(Phi2) * Phi1
 end
 
 function Phi_pm(B, Bc, h, sign)
-    """Compute Φⁿ₊ and Φⁿ₋, for two point algorithm"""
+    """Compute Φⁿ₊ and Φⁿ₋ for two point algorithm"""
     Lambda_n = Lambda(B, Bc, h)
     sinch_n = sinch(B, h)
     return (I - sign * 0.5 * h * Lambda_n * hat(B)) * sinch_n
 end
 
 function Psi_pm(B, Bc, h, sign)
-    """Compute Ψⁿ₊ and Ψⁿ₋, for two point algorithm"""
+    """Compute Ψⁿ₊ and Ψⁿ₋ for two point algorithm"""
     Psi_n = Psi(B, h)
     Phi_pm_n = Phi_pm(B, Bc, h, sign)
     Gamma_n = Gamma(B, h)

@@ -1,7 +1,10 @@
+# Filtered Boris algorithms
+
 Julia implementation of  "A ﬁltered Boris algorithm for charged-particle dynamics
 in a strong magnetic ﬁeld" by Ernst Hairer, Christian Lubich, Bin Wang
 
 Implemented by Carla López for the Physics Seminar of ETH Zurich
+
 December 2024
 
 ## Repository Structure

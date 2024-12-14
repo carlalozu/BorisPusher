@@ -1,18 +1,22 @@
+"""Matrix function computation by means of matrix identities"""
+
+using LinearAlgebra
+
 function matrix_function(B, fun_)
-    B1, B2, B3 = B
+    b1, b2, b3 = B
     b = norm(B)
 
-    term1 = 0.5 * (2 * fun_(0) * B1^2 + (B2^2 + B3^2) * fun_(-im * b) + (B2^2 + B3^2) * fun_(im * b)) / b^2
-    term2 = 0.5 * (2 * fun_(0) * B1 * B2 - (B1 * B2 + im * b * B3) * fun_(-1 * im * b) + (-B1 * B2 + im * b * B3) * fun_(im * b)) / b^2
-    term3 = 0.5 * (2 * fun_(0) * B1 * B3 + (im * b * B2 - 1 * B1 * B3) * fun_(-1 * im * b) - (im * b * B2 + B1 * B3) * fun_(im * b)) / b^2
+    term1 = 0.5 * (2 * fun_(0) * b1^2 + (b2^2 + b3^2) * fun_(-im * b) + (b2^2 + b3^2) * fun_(im * b)) / b^2
+    term2 = 0.5 * (2 * fun_(0) * b1 * b2 - (b1 * b2 + im * b * b3) * fun_(-1 * im * b) + (-b1 * b2 + im * b * b3) * fun_(im * b)) / b^2
+    term3 = 0.5 * (2 * fun_(0) * b1 * b3 + (im * b * b2 - 1 * b1 * b3) * fun_(-1 * im * b) - (im * b * b2 + b1 * b3) * fun_(im * b)) / b^2
 
-    term4 = 0.5 * (2 * fun_(0) * B1 * B2 + (-B1 * B2 + im * b * B3) * fun_(-im * b) - (B1 * B2 + im * b * B3) * fun_(im * b)) / b^2
-    term5 = 0.5 * (2 * fun_(0) * B2^2 + (B1^2 + B3^2) * fun_(-1 * im * b) + (B1^2 + B3^2) * fun_(im * b)) / b^2
-    term6 = 0.5 * (2 * fun_(0) * B2 * B3 - (im * b * B1 + B2 * B3) * fun_(-im * b) + (im * b * B1 - B2 * B3) * fun_(im * b)) / b^2
+    term4 = 0.5 * (2 * fun_(0) * b1 * b2 + (-b1 * b2 + im * b * b3) * fun_(-im * b) - (b1 * b2 + im * b * b3) * fun_(im * b)) / b^2
+    term5 = 0.5 * (2 * fun_(0) * b2^2 + (b1^2 + b3^2) * fun_(-1 * im * b) + (b1^2 + b3^2) * fun_(im * b)) / b^2
+    term6 = 0.5 * (2 * fun_(0) * b2 * b3 - (im * b * b1 + b2 * b3) * fun_(-im * b) + (im * b * b1 - b2 * b3) * fun_(im * b)) / b^2
 
-    term7 = 0.5 * (2 * fun_(0) * B1 * B3 - (im * b * B2 + B1 * B3) * fun_(-im * b) + (im * b * B2 - B1 * B3) * fun_(im * b)) / b^2
-    term8 = 0.5 * (2 * fun_(0) * B2 * B3 + (im * b * B1 - B2 * B3) * fun_(-im * b) - (im * b * B1 + B2 * B3) * fun_(im * b)) / b^2
-    term9 = 0.5 * (2 * fun_(0) * B3^2 + (B1^2 + B2^2) * fun_(-im * b) + (B1^2 + B2^2) * fun_(im * b)) / b^2
+    term7 = 0.5 * (2 * fun_(0) * b1 * b3 - (im * b * b2 + b1 * b3) * fun_(-im * b) + (im * b * b2 - b1 * b3) * fun_(im * b)) / b^2
+    term8 = 0.5 * (2 * fun_(0) * b2 * b3 + (im * b * b1 - b2 * b3) * fun_(-im * b) - (im * b * b1 + b2 * b3) * fun_(im * b)) / b^2
+    term9 = 0.5 * (2 * fun_(0) * b3^2 + (b1^2 + b2^2) * fun_(-im * b) + (b1^2 + b2^2) * fun_(im * b)) / b^2
 
     return real.([
         term1 term2 term3;
