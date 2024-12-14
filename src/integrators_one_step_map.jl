@@ -1,3 +1,5 @@
+"""Integrators with mapping properties (x^n, v^n) ⟼ (x^(n+1), v^(n+1))"""
+
 using LinearAlgebra
 using NLsolve
 
